@@ -4,7 +4,7 @@ Discord bot for the TCS UTwente discord server
 ## Feel free to pull request any changes / improvements you make :) ##
 
 # License #
-This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](https://github.com/Yuhanun/TCSDiscordBot/blob/master/LICENSE) file for details
+This project is licensed under the MIT License (yay, free software) - see the [LICENSE](https://github.com/Yuhanun/TCSDiscordBot/blob/master/LICENSE) file for details
 
 # Acknowledgments #
 Thanks to @EyeDevelop for coding this bot with me.
