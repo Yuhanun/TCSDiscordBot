@@ -81,6 +81,23 @@ class RoleHelper(commands.Cog):
                               name=f"Year {int(message.content)}")
         )
 
+        await member.send(f"Which do group were you in?\nIf you did not join in the kick-in, capital insensitive, then just send a `.`")
+        message = await self.bot.wait_for("message", check=_check_member_dm)
+
+        if message.content != ".":
+            to_add = discord.utils.find(lambda role: role.name.lower() == message.content.lower(), member.guild.roles)
+            if to_add is not None:
+                _new_member["roles"].append(to_add)
+            else:
+                await member.send("Could not find that do-group, ask one of the admins to apply it later.")
+
+        await member.send(f"Which do house are you in?\nIf you are not in a house, then just send a `.`, otherwise just `red` or `blue`, etc")
+        message = await self.bot.wait_for("message", check=_check_member_dm)
+
+        if message.content != ".":
+            to_add = discord.utils.find(lambda role: role.name.lower() == f"{message.content.lower()} house", member.guild.roles)
+            _new_member["roles"].append(to_add)
+
         await member.edit(**_new_member)
         await member.send("Your roles have been applied! Welcome to the server, make sure to read the rules!")
 
