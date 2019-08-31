@@ -33,6 +33,9 @@ class RoleHelper(commands.Cog):
         if isinstance(error, commands.NoPrivateMessage):
             return await send_error(ctx, error)
 
+        else:
+            await send_error(ctx, error)
+
         raise error
 
     @commands.Cog.listener()

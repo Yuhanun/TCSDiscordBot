@@ -19,7 +19,8 @@ async def on_ready():
 
 if __name__ == "__main__":
     extensions = [
-        "cogs.rolehelper"
+        "cogs.rolehelper",
+        "cogs.moderation"
     ]
     [bot.load_extension(ext) for ext in extensions]
     bot.run(TOKEN)
