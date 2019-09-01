@@ -76,7 +76,7 @@ class RoleHelper(commands.Cog):
 
         def _check_member_dm(message):
             """Checks if message is sent in DM and whether it's sent by the original person that joined"""
-            return message.author.id == member.id and message.channel.guild is None
+            return message.author.id == member.id and isinstance(message.channel, discord.DMChannel)
 
         await member.send(f"To gain access to the rest of the channels in the server, you'll have to tell me a few things about yourself.\nPlease tell me your real firstname, for example: Michael")
         message = await self.bot.wait_for("message", check=_check_member_dm)
