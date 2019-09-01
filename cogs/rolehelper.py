@@ -16,6 +16,13 @@ class RoleHelper(commands.Cog):
         """
         Triggers role that matches current year into your studies.
         """
+        role = discord.utils.get(ctx.guild.roles, name=f"Year {year}")
+        if role is None:
+            if year not in range(1, 11):
+                return await ctx.send(f"{year} is too high to be a year, if you think this is a mistake, please ping one of the admins.")
+            # role doesn't exist, create it
+            await ctx.guild.create_role(f"Year {year}")
+
         result = await trigger_role(ctx.author, f"Year {year}", ctx.guild)
         await simple_embed(ctx, ("Removed " if not result else "Added ") + f"role `Year {year}`")
 
@@ -23,10 +30,19 @@ class RoleHelper(commands.Cog):
     @commands.command(name="bachelor")
     async def _set_bachelor(self, ctx) -> None:
         """
-        Triggers bachelor role.
+        Triggers Bachelor role.
         """
         result = await trigger_role(ctx.author, "Bachelors", ctx.guild)
         await simple_embed(ctx, ("Removed " if not result else "Added ") + f"role `Bachelors`")
+
+    @commands.guild_only()
+    @commands.command(name="master")
+    async def _set_master(self, ctx) -> None:
+        """
+        Triggers Masters role.
+        """
+        result = await trigger_role(ctx.author, "Masters", ctx.guild)
+        await simple_embed(ctx, ("Removed " if not result else "Added ") + f"role `Masters`")
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
