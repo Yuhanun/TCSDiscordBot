@@ -21,9 +21,9 @@ class RoleHelper(commands.Cog):
             if year not in range(1, 11):
                 return await ctx.send(f"{year} is too high to be a year, if you think this is a mistake, please ping one of the admins.")
             # role doesn't exist, create it
-            await ctx.guild.create_role(name=f"Year {year}")
+            role = await ctx.guild.create_role(name=f"Year {year}")
 
-        result = await trigger_role(ctx.author, f"Year {year}", ctx.guild)
+        result = await trigger_role(ctx.author, role or f"Year {year}", ctx.guild)
         await simple_embed(ctx, ("Removed " if not result else "Added ") + f"role `Year {year}`")
 
     @commands.guild_only()
