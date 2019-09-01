@@ -16,17 +16,33 @@ class RoleHelper(commands.Cog):
         """
         Triggers role that matches current year into your studies.
         """
-        result = await trigger_role(ctx.author, f"Year {year}", ctx.guild)
+        role = discord.utils.get(ctx.guild.roles, name=f"Year {year}")
+        if role is None:
+            if year not in range(1, 11):
+                return await ctx.send(f"{year} is too high to be a year, if you think this is a mistake, please ping one of the admins.")
+            # role doesn't exist, create it
+            role = await ctx.guild.create_role(name=f"Year {year}")
+
+        result = await trigger_role(ctx.author, role or f"Year {year}", ctx.guild)
         await simple_embed(ctx, ("Removed " if not result else "Added ") + f"role `Year {year}`")
 
     @commands.guild_only()
     @commands.command(name="bachelor")
     async def _set_bachelor(self, ctx) -> None:
         """
-        Triggers bachelor role.
+        Triggers Bachelor role.
         """
         result = await trigger_role(ctx.author, "Bachelors", ctx.guild)
         await simple_embed(ctx, ("Removed " if not result else "Added ") + f"role `Bachelors`")
+
+    @commands.guild_only()
+    @commands.command(name="master")
+    async def _set_master(self, ctx) -> None:
+        """
+        Triggers Masters role.
+        """
+        result = await trigger_role(ctx.author, "Masters", ctx.guild)
+        await simple_embed(ctx, ("Removed " if not result else "Added ") + f"role `Masters`")
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
@@ -60,7 +76,7 @@ class RoleHelper(commands.Cog):
 
         def _check_member_dm(message):
             """Checks if message is sent in DM and whether it's sent by the original person that joined"""
-            return message.author.id == member.id and message.channel.guild is None
+            return message.author.id == member.id and isinstance(message.channel, discord.DMChannel)
 
         await member.send(f"To gain access to the rest of the channels in the server, you'll have to tell me a few things about yourself.\nPlease tell me your real firstname, for example: Michael")
         message = await self.bot.wait_for("message", check=_check_member_dm)

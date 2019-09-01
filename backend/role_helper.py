@@ -64,7 +64,7 @@ async def simple_embed(ctx, text):
 
 async def send_error(ctx, error):
     await ctx.send(
-        embed=discord.Embed(title="This command can only be used in guilds",
+        embed=discord.Embed(title=str(error),
                             colour=discord.Colour(0xFF0000), timestamp=datetime.datetime.utcnow())
         .set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
         .set_footer(text="Guild only!"))

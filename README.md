@@ -5,15 +5,19 @@ Discord bot for the TCS UTwente discord server
 Clone the repository and set up virtualenv:
 
 ```sh
-#clone the repository
+# clone the repository
 git clone https://github.com/Yuhanun/TCSDiscordBot.git
 cd TCSDiscordBot
-set up and activate the virtualenv in the correct spot
+# set up and activate the virtualenv in the correct spot
 python3 -m virtualenv venv
 source ./venv/bin/activate # for linux/macOS
 .\venv\Scripts\activate # for windows
-#install the dependencies
+# install the dependencies
 pip install -r requirements.txt
+
+# Create a token.txt file containing your bot token, \n's and spaces don't matter at the end or begin, the token is .strip()'d
+
+python main.py
 ```
 to stop working on the project, just type `deactivate` in your terminal of choice
 
