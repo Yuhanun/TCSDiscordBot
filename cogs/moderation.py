@@ -5,6 +5,7 @@ from discord.ext import commands
 
 from backend.role_helper import simple_embed
 
+
 class Moderation(commands.Cog):
     def __init__(self, bot: discord.Client):
         self.bot = bot
@@ -38,7 +39,6 @@ class Moderation(commands.Cog):
 
         deleted: List[discord.Message] = await ctx.channel.purge(limit=limit, check=_to_delete)
         await simple_embed(ctx, f"Removed {len(deleted)} messages" + (f" by user {member}" if member is not None else ""))
-
 
 
 def setup(bot):

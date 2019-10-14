@@ -104,7 +104,8 @@ class RoleHelper(commands.Cog):
         message = await self.bot.wait_for("message", check=_check_member_dm)
 
         if message.content != ".":
-            to_add = discord.utils.find(lambda role: role.name.lower() == message.content.lower(), member.guild.roles)
+            to_add = discord.utils.find(lambda role: role.name.lower(
+            ) == message.content.lower(), member.guild.roles)
             if to_add is not None:
                 _new_member["roles"].append(to_add)
             else:
@@ -114,7 +115,8 @@ class RoleHelper(commands.Cog):
         message = await self.bot.wait_for("message", check=_check_member_dm)
 
         if message.content != ".":
-            to_add = discord.utils.find(lambda role: role.name.lower() == f"{message.content.lower()} house", member.guild.roles)
+            to_add = discord.utils.find(lambda role: role.name.lower(
+            ) == f"{message.content.lower()} house", member.guild.roles)
             _new_member["roles"].append(to_add)
 
         await member.edit(**_new_member)
