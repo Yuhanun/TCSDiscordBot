@@ -15,7 +15,7 @@ class Fun(commands.Cog):
             return
         if message.author.bot:
             return
-        if random.randint(0, 100) == 50:
+        if not random.randint(0, 100) == 50:
             return
         await message.add_reaction("<:tutkegel:620927895132569601>")
 
