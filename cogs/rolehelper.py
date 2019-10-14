@@ -111,7 +111,7 @@ class RoleHelper(commands.Cog):
             else:
                 await member.send("Could not find that do-group, ask one of the admins to apply it later.")
 
-        await member.send(f"Which do house are you in?\nIf you are not in a house, then just send a `.`, otherwise just `red` or `blue`, etc")
+        await member.send(f"Which house are you in?\nIf you are not in a house, then just send a `.`, otherwise just `red` or `blue`, etc")
         message = await self.bot.wait_for("message", check=_check_member_dm)
 
         if message.content != ".":
