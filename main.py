@@ -21,7 +21,8 @@ if __name__ == "__main__":
     extensions = [
         "cogs.rolehelper",
         "cogs.moderation",
-        "cogs.fun"
+        "cogs.fun",
+        "cogs.rtfm"
     ]
     [bot.load_extension(ext) for ext in extensions]
     bot.run(TOKEN)
