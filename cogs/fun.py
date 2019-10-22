@@ -1,8 +1,6 @@
 import random
-from typing import Union
 
 import discord
-from discord import User, Member
 from discord.ext import commands
 
 from backend import database
@@ -43,25 +41,28 @@ class Fun(commands.Cog):
                        "<:tegel2:634119528330035200>"
                        "<:tegel1:634119528439218206>")
 
+    @commands.Cog.listener()
+    async def on_reaction_add(self, reaction: discord.Reaction, user: discord.User):
+        await self.change_count(reaction, True)
+
+    @commands.Cog.listener()
+    async def on_reaction_remove(self, reaction: discord.Reaction, user: discord.User):
+        await self.change_count(reaction, False)
+
     class Emotes(discord.Enum):
-        DAS_MOOI = ':dasmooi:'
+        DAS_MOOI = 'dasmooi'
         DAS_NIET_MOOI = 'dasnietmooi'
 
-    def change_count(self, reaction: discord.Reaction, increment: bool):
+    async def change_count(self, reaction: discord.Reaction, increment: bool):
         if self.enabled:
-            emoji: discord.Emoji = reaction.emoji
-            if emoji.name == self.Emotes.DAS_MOOI:
-                database.update_karma(reaction.message.author.id, (1 if increment else -1, 0))
-            elif emoji.name == self.Emotes.DAS_NIET_MOOI:
-                database.update_karma(reaction.message.author.id, (0, 1 if increment else -1))
-
-    @commands.Cog.listener()
-    async def on_reaction_add(self, reaction: discord.Reaction, user: Union[Member, User]):
-        self.change_count(reaction, True)
-
-    @commands.Cog.listener()
-    async def on_reaction_remove(self, reaction: discord.Reaction, user: Union[Member, User]):
-        self.change_count(reaction, False)
+            emoji: discord.emoji.Emoji = reaction.emoji
+            if type(emoji) == discord.emoji.Emoji:
+                if emoji.name == self.Emotes.DAS_MOOI.value:
+                    await database.update_karma(reaction.message.author.id,
+                                                (1 if increment else -1, 0))
+                elif emoji.name == self.Emotes.DAS_NIET_MOOI.value:
+                    await database.update_karma(reaction.message.author.id,
+                                                (0, 1 if increment else -1))
 
 
 def setup(bot):

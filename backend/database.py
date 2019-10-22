@@ -37,7 +37,7 @@ def get_karma(discord_id: int) -> (int, int):
     return karma if karma else (0, 0)
 
 
-def set_karma(discord_id: int, karma: (int, int)):
+async def set_karma(discord_id: int, karma: (int, int)):
     cursor = connection.cursor()
     cursor.execute("INSERT OR IGNORE INTO user (discord_id) VALUES (?);", [discord_id])
     cursor.execute("INSERT INTO karma "
@@ -51,7 +51,7 @@ def set_karma(discord_id: int, karma: (int, int)):
     cursor.close()
 
 
-def update_karma(discord_id: int, karma: (int, int)):
+async def update_karma(discord_id: int, karma: (int, int)):
     cursor = connection.cursor()
     cursor.execute("INSERT OR IGNORE INTO user (discord_id) VALUES (?);", [discord_id])
     cursor.execute("INSERT INTO karma "
