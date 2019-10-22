@@ -39,8 +39,7 @@ class Fun(commands.Cog):
             return
         if not "this is so sad" in message.content.lower():
             return
-        channel = message.channel
-        await channel.send("Alexa, play Despacito")
+        await message.channel.send("Alexa, play Despacito")
 
 def setup(bot):
     bot.add_cog(Fun(bot))
