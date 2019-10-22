@@ -5,6 +5,8 @@ import discord
 from discord import User, Member
 from discord.ext import commands
 
+from backend import database
+
 
 class Fun(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -45,32 +47,21 @@ class Fun(commands.Cog):
         DAS_MOOI = ':dasmooi:'
         DAS_NIET_MOOI = 'dasnietmooi'
 
-    def change_count(self, user: Union[Member, User], reaction: discord.Reaction, increment: bool):
+    def change_count(self, reaction: discord.Reaction, increment: bool):
         if self.enabled:
             emoji: discord.Emoji = reaction.emoji
-            message: discord.Message = reaction.message
             if emoji.name == self.Emotes.DAS_MOOI:
-                if increment:
-                    # Increment
-                    pass
-                else:
-                    # Decrement
-                    pass
+                database.update_karma(reaction.message.author.id, (1 if increment else -1, 0))
             elif emoji.name == self.Emotes.DAS_NIET_MOOI:
-                if increment:
-                    # Increment
-                    pass
-                else:
-                    # Decrement
-                    pass
+                database.update_karma(reaction.message.author.id, (0, 1 if increment else -1))
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction, user: Union[Member, User]):
-        self.change_count(user, reaction, True)
+        self.change_count(reaction, True)
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction: discord.Reaction, user: Union[Member, User]):
-        self.change_count(user, reaction, False)
+        self.change_count(reaction, False)
 
 
 def setup(bot):
