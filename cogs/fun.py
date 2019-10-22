@@ -43,18 +43,18 @@ class Fun(commands.Cog):
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction, user: discord.User):
-        await self.change_count(reaction, True)
+        await self.change_count(reaction, user, True)
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction: discord.Reaction, user: discord.User):
-        await self.change_count(reaction, False)
+        await self.change_count(reaction, user, False)
 
     class Emotes(discord.Enum):
         DAS_MOOI = 'dasmooi'
         DAS_NIET_MOOI = 'dasnietmooi'
 
-    async def change_count(self, reaction: discord.Reaction, increment: bool):
-        if self.enabled:
+    async def change_count(self, reaction: discord.Reaction, user: discord.User, increment: bool):
+        if self.enabled and user != reaction.message.author:
             emoji: discord.emoji.Emoji = reaction.emoji
             if type(emoji) == discord.emoji.Emoji:
                 if emoji.name == self.Emotes.DAS_MOOI.value:
