@@ -1,6 +1,8 @@
 import random
+from typing import Union
 
 import discord
+from discord import User, Member
 from discord.ext import commands
 
 
@@ -38,6 +40,37 @@ class Fun(commands.Cog):
                        "\n<:tegel3:634119528825094164>"
                        "<:tegel2:634119528330035200>"
                        "<:tegel1:634119528439218206>")
+
+    class Emotes(discord.Enum):
+        DAS_MOOI = ':dasmooi:'
+        DAS_NIET_MOOI = 'dasnietmooi'
+
+    def change_count(self, user: Union[Member, User], reaction: discord.Reaction, increment: bool):
+        if self.enabled:
+            emoji: discord.Emoji = reaction.emoji
+            message: discord.Message = reaction.message
+            if emoji.name == self.Emotes.DAS_MOOI:
+                if increment:
+                    # Increment
+                    pass
+                else:
+                    # Decrement
+                    pass
+            elif emoji.name == self.Emotes.DAS_NIET_MOOI:
+                if increment:
+                    # Increment
+                    pass
+                else:
+                    # Decrement
+                    pass
+
+    @commands.Cog.listener()
+    async def on_reaction_add(self, reaction: discord.Reaction, user: Union[Member, User]):
+        self.change_count(user, reaction, True)
+
+    @commands.Cog.listener()
+    async def on_reaction_remove(self, reaction: discord.Reaction, user: Union[Member, User]):
+        self.change_count(user, reaction, False)
 
 
 def setup(bot):
