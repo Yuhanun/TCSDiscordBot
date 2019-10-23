@@ -31,9 +31,9 @@ def create_tables():
     cursor.close()
 
 
-def get_top_karma(limit: int) -> [(int, (int, int))]:
+def get_top_karma(limit: int) -> [(int, int, int)]:
     cursor = connection.cursor()
-    cursor.execute("SELECT k.positive, k.negative, u.discord_id "
+    cursor.execute("SELECT u.discord_id, k.positive, k.negative "
                    "FROM user u "
                    "JOIN karma k ON u.id = k.user_id "
                    "LIMIT ?;", [limit])

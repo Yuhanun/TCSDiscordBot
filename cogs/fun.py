@@ -47,8 +47,8 @@ class Fun(commands.Cog):
     @commands.command(name='wiezijnhetmooist',
                       aliases=['whoarehetmooist', 'spiegeltjespiegeltjeaandewand'])
     async def on_karma_leaderboard_request(self, ctx: Context):
-        message = '\n'.join([f'{x[0] + 1}. {await self.bot.get_user(x[1][0]).name} - '
-                             f'{x[1][1][0]} Positives and {x[1][1][1]} Negatives'
+        message = '\n'.join([f'{x[0] + 1}. {self.bot.get_user(x[1][0]).name} - '
+                             f'{x[1][1]} Positives and {x[1][2]} Negatives'
                              for x in enumerate(database.get_top_karma(10))])
         await ctx.send(message if message else 'Nobody is mooi')
 
@@ -62,21 +62,24 @@ class Fun(commands.Cog):
                        f'Positives and {response[1]} Negatives')
 
     @commands.Cog.listener()
-    async def on_reaction_add(self, reaction: discord.Reaction, user: discord.User):
-        await self.change_count(reaction, user, True)
+    async def on_reaction_add(self, reaction: discord.Reaction, member: discord.Member):
+        await self.change_count(reaction, member, True)
 
     @commands.Cog.listener()
-    async def on_reaction_remove(self, reaction: discord.Reaction, user: discord.User):
-        await self.change_count(reaction, user, False)
+    async def on_reaction_remove(self, reaction: discord.Reaction, member: discord.Member):
+        await self.change_count(reaction, member, False)
 
     class KarmaEmotes(discord.Enum):
         POSITIVE = 'dasmooi'
         NEGATIVE = 'dasnietmooi'
 
     # Check if the karma count should be changed, if so, change it
-    async def change_count(self, reaction: discord.Reaction, user: discord.User, increment: bool):
-        # Check if the user doesn't want to give karma to themselves
-        if self.enabled and user != reaction.message.author:
+    async def change_count(self, reaction: discord.Reaction, member: discord.Member,
+                           increment: bool):
+        # Check if the user doesn't want to give karma to themselves.
+        # It is also important that Tegel's opinion doesn't count.
+        if self.enabled and member != reaction.message.author \
+                and not discord.utils.get(member.roles, name='Tegel'):
             emoji: discord.emoji.Emoji = reaction.emoji
             # Check if the emoji is a karma emoji
             if type(emoji) == discord.emoji.Emoji:
