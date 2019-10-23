@@ -41,6 +41,16 @@ class Fun(commands.Cog):
                        "<:tegel2:634119528330035200>"
                        "<:tegel1:634119528439218206>")
 
+    @commands.command(name='wiezijnhetmooist',
+                      aliases=['whoarehetmooist', 'spiegeltjespiegeltjeaandewand'])
+    async def on_karma_leaderboard_request(self, ctx):
+        # Send the leaderboards in the following format:
+        # {ranking}. {name} - {positives} Positives and {negatives} Negatives
+        message = '\n'.join([f'{x[0] + 1}. {await self.bot.get_user(x[1][0]).name} - '
+                             f'{x[1][1][0]} Positives and {x[1][1][1]} Negatives'
+                             for x in enumerate(database.get_top_karma(10))])
+        await ctx.send(message if message else 'Nobody is mooi')
+
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction, user: discord.User):
         await self.change_count(reaction, user, True)

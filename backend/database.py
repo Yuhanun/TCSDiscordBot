@@ -1,5 +1,9 @@
 import sqlite3
 
+import discord
+
+import main
+
 
 def create_tables():
     cursor = connection.cursor()
@@ -27,6 +31,18 @@ def create_tables():
     cursor.close()
 
 
+def get_top_karma(limit: int) -> [(int, (int, int))]:
+    cursor = connection.cursor()
+    cursor.execute("SELECT k.positive, k.negative, u.discord_id "
+                   "FROM user u "
+                   "JOIN karma k ON u.id = k.user_id "
+                   "LIMIT ?;", [limit])
+
+    leaders = cursor.fetchall()
+    cursor.close()
+    return leaders if leaders else []
+
+
 def get_karma(discord_id: int) -> (int, int):
     cursor = connection.cursor()
     cursor.execute("SELECT k.positive, k.negative "
@@ -34,6 +50,7 @@ def get_karma(discord_id: int) -> (int, int):
                    "JOIN karma k ON u.id = k.user_id "
                    "WHERE u.discord_id=?;", [discord_id])
     karma = cursor.fetchone()
+    cursor.close()
     return karma if karma else (0, 0)
 
 
