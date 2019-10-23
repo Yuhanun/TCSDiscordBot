@@ -1,10 +1,7 @@
 import sqlite3
 
-import discord
 
-import main
-
-
+# Create the default structure
 def create_tables():
     cursor = connection.cursor()
     cursor.execute("CREATE TABLE IF NOT EXISTS user "
@@ -31,11 +28,13 @@ def create_tables():
     cursor.close()
 
 
+# Get the leading karma users
 def get_top_karma(limit: int) -> [(int, int, int)]:
     cursor = connection.cursor()
     cursor.execute("SELECT u.discord_id, k.positive, k.negative "
                    "FROM user u "
                    "JOIN karma k ON u.id = k.user_id "
+                   "ORDER BY (k.positive - k.negative) DESC "
                    "LIMIT ?;", [limit])
 
     leaders = cursor.fetchall()
@@ -43,6 +42,7 @@ def get_top_karma(limit: int) -> [(int, int, int)]:
     return leaders if leaders else []
 
 
+# Get the karma for a specific user
 def get_karma(discord_id: int) -> (int, int):
     cursor = connection.cursor()
     cursor.execute("SELECT k.positive, k.negative "
@@ -54,6 +54,7 @@ def get_karma(discord_id: int) -> (int, int):
     return karma if karma else (0, 0)
 
 
+# Set the karma for a specific user
 async def set_karma(discord_id: int, karma: (int, int)):
     cursor = connection.cursor()
     cursor.execute("INSERT OR IGNORE INTO user (discord_id) VALUES (?);", [discord_id])
@@ -68,6 +69,7 @@ async def set_karma(discord_id: int, karma: (int, int)):
     cursor.close()
 
 
+# Update the karma counts for a specific user
 async def update_karma(discord_id: int, karma: (int, int)):
     cursor = connection.cursor()
     cursor.execute("INSERT OR IGNORE INTO user (discord_id) VALUES (?);", [discord_id])
@@ -83,5 +85,6 @@ async def update_karma(discord_id: int, karma: (int, int)):
     cursor.close()
 
 
+# Set up the defaults
 connection = sqlite3.connect('tcs_bot.db')
 create_tables()
