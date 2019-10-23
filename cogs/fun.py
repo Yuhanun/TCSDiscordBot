@@ -2,6 +2,7 @@ import random
 
 import discord
 from discord.ext import commands
+from discord.ext.commands import Context
 
 from backend import database
 
@@ -41,15 +42,24 @@ class Fun(commands.Cog):
                        "<:tegel2:634119528330035200>"
                        "<:tegel1:634119528439218206>")
 
+    # Send the leaderboards in the following format:
+    # {ranking}. {name} - {positives} Positives and {negatives} Negatives
     @commands.command(name='wiezijnhetmooist',
                       aliases=['whoarehetmooist', 'spiegeltjespiegeltjeaandewand'])
-    async def on_karma_leaderboard_request(self, ctx):
-        # Send the leaderboards in the following format:
-        # {ranking}. {name} - {positives} Positives and {negatives} Negatives
+    async def on_karma_leaderboard_request(self, ctx: Context):
         message = '\n'.join([f'{x[0] + 1}. {await self.bot.get_user(x[1][0]).name} - '
                              f'{x[1][1][0]} Positives and {x[1][1][1]} Negatives'
                              for x in enumerate(database.get_top_karma(10))])
         await ctx.send(message if message else 'Nobody is mooi')
+
+    # Send a current status for a given player in the following format:
+    # {mention} - You currently have {positives} Positives and {negatives} Negatives
+    @commands.command(name='hoemooibenik', aliases=['howmooiami'])
+    async def on_karma_self_request(self, ctx: Context):
+        author: discord.User = ctx.author
+        response: (int, int) = database.get_karma(author.id)
+        await ctx.send(f'{author.mention} - You currently have: {response[0]} '
+                       f'Positives and {response[1]} Negatives')
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction, user: discord.User):
@@ -59,18 +69,23 @@ class Fun(commands.Cog):
     async def on_reaction_remove(self, reaction: discord.Reaction, user: discord.User):
         await self.change_count(reaction, user, False)
 
-    class Emotes(discord.Enum):
-        DAS_MOOI = 'dasmooi'
-        DAS_NIET_MOOI = 'dasnietmooi'
+    class KarmaEmotes(discord.Enum):
+        POSITIVE = 'dasmooi'
+        NEGATIVE = 'dasnietmooi'
 
+    # Check if the karma count should be changed, if so, change it
     async def change_count(self, reaction: discord.Reaction, user: discord.User, increment: bool):
+        # Check if the user doesn't want to give karma to themselves
         if self.enabled and user != reaction.message.author:
             emoji: discord.emoji.Emoji = reaction.emoji
+            # Check if the emoji is a karma emoji
             if type(emoji) == discord.emoji.Emoji:
-                if emoji.name == self.Emotes.DAS_MOOI.value:
+                if emoji.name == self.KarmaEmotes.POSITIVE.value:
+                    # Update the positive karma
                     await database.update_karma(reaction.message.author.id,
                                                 (1 if increment else -1, 0))
-                elif emoji.name == self.Emotes.DAS_NIET_MOOI.value:
+                elif emoji.name == self.KarmaEmotes.NEGATIVE.value:
+                    # Update the negative karma
                     await database.update_karma(reaction.message.author.id,
                                                 (0, 1 if increment else -1))
 
