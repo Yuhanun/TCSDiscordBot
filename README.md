@@ -9,6 +9,7 @@ Clone the repository and set up virtualenv:
 git clone https://github.com/Yuhanun/TCSDiscordBot.git
 cd TCSDiscordBot
 # set up and activate the virtualenv in the correct spot
+# You don't HAVE to do this, however it's recommended.
 python3 -m virtualenv venv
 source ./venv/bin/activate # for linux/macOS
 .\venv\Scripts\activate # for windows
