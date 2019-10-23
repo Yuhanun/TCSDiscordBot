@@ -49,7 +49,7 @@ class Fun(commands.Cog):
     async def on_karma_leaderboard_request(self, ctx: Context):
         message = '\n'.join([f'{x[0] + 1}. {self.bot.get_user(x[1][0]).name} - '
                              f'{x[1][1]} Positives and {x[1][2]} Negatives'
-                             for x in enumerate(database.get_top_karma(10))])
+                             for x in enumerate(await database.get_top_karma(10))])
         await ctx.send(message if message else 'Nobody is mooi')
 
     # Send a current status for a given player in the following format:
@@ -57,7 +57,7 @@ class Fun(commands.Cog):
     @commands.command(name='hoemooibenik', aliases=['howmooiami'])
     async def on_karma_self_request(self, ctx: Context):
         author: discord.User = ctx.author
-        response: (int, int) = database.get_karma(author.id)
+        response: (int, int) = await database.get_karma(author.id)
         await ctx.send(f'{author.mention} - You currently have: {response[0]} '
                        f'Positives and {response[1]} Negatives')
 
