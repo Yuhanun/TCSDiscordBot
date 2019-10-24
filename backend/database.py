@@ -36,7 +36,21 @@ async def get_top_karma(limit: int) -> [(int, int, int)]:
         async with connection.execute("SELECT u.discord_id, k.positive, k.negative "
                                       "FROM user u "
                                       "JOIN karma k ON u.id = k.user_id "
+                                      "WHERE k.positive <> 0 OR k.negative <> 0 "
                                       "ORDER BY (k.positive - k.negative) DESC "
+                                      "LIMIT ?;", [limit]) as cursor:
+            leaders = await cursor.fetchall()
+            return leaders if leaders else []
+
+
+# Get the leading negative karma users
+async def get_reversed_top_karma(limit: int) -> [(int, int, int)]:
+    async with aiosqlite.connect(DATABASE_LOCATION) as connection:
+        async with connection.execute("SELECT u.discord_id, k.positive, k.negative "
+                                      "FROM user u "
+                                      "JOIN karma k ON u.id = k.user_id "
+                                      "WHERE k.positive <> 0 OR k.negative <> 0 "
+                                      "ORDER BY (k.positive - k.negative) ASC "
                                       "LIMIT ?;", [limit]) as cursor:
             leaders = await cursor.fetchall()
             return leaders if leaders else []

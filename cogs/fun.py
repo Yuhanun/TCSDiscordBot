@@ -1,3 +1,4 @@
+import enum
 import random
 
 import discord
@@ -43,23 +44,40 @@ class Fun(commands.Cog):
                        "<:tegel1:634119528439218206>")
 
     # Send the leaderboards in the following format:
-    # {ranking}. {name} - {positives} Positives and {negatives} Negatives
+    # {ranking}. {name} - {score} ({positives} Positives and {negatives} Negatives)
     @commands.command(name='wiezijnhetmooist',
-                      aliases=['whoarehetmooist', 'spiegeltjespiegeltjeaandewand'])
+                      aliases=['whoarehetmooist', 'spiegeltjespiegeltjeaandewand',
+                               'wieishetmooist', 'mirrormirroronthewall'])
     async def on_karma_leaderboard_request(self, ctx: Context):
-        message = '\n'.join([f'{x[0] + 1}. {self.bot.get_user(x[1][0]).name} - '
-                             f'{x[1][1]} Positives and {x[1][2]} Negatives'
-                             for x in enumerate(await database.get_top_karma(10))])
+        message = self.order_leaderboard(await database.get_top_karma(10))
         await ctx.send(message if message else 'Nobody is mooi')
 
+    # Send the negative leaderboards in the following format:
+    # {ranking}. {name} - {score} ({positives} Positives and {negatives} Negatives)
+    @commands.command(name='wiezijnhetminstmooi',
+                      aliases=['whoarehetleastmooi', 'trash', 'whoishetleastmooi',
+                               'wieishetminstmooi'])
+    async def on_karma_worst_leaderboard_request(self, ctx: Context):
+        message = self.order_leaderboard(await database.get_reversed_top_karma(10))
+        await ctx.send(message if message else "Why don't you guys hate someone?")
+
+    # Returns a string in the following format:
+    # {ranking}. {name} - {score} ({positives} Positives and {negatives} Negatives)
+    def order_leaderboard(self, karma):
+        return '\n'.join([f'{x[0] + 1}. {self.bot.get_user(x[1][0]).name} - '
+                          f'**{x[1][1] - x[1][2]}** '
+                          f'*({x[1][1]} Positives and {x[1][2]} Negatives)*'
+                          for x in enumerate(karma)])
+
     # Send a current status for a given player in the following format:
-    # {mention} - You currently have {positives} Positives and {negatives} Negatives
+    # {mention} - Your current score is: {score} ({positives} Positives and {negatives} Negatives)
     @commands.command(name='hoemooibenik', aliases=['howmooiami'])
     async def on_karma_self_request(self, ctx: Context):
         author: discord.User = ctx.author
         response: (int, int) = await database.get_karma(author.id)
-        await ctx.send(f'{author.mention} - You currently have: {response[0]} '
-                       f'Positives and {response[1]} Negatives')
+        await ctx.send(
+            f'{author.mention} - Your current score is: **{response[0] - response[1]}** '
+            f'*({response[0]} Positives and {response[1]} Negatives)*')
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction, member: discord.Member):
@@ -69,7 +87,7 @@ class Fun(commands.Cog):
     async def on_reaction_remove(self, reaction: discord.Reaction, member: discord.Member):
         await self.change_count(reaction, member, False)
 
-    class KarmaEmotes(discord.Enum):
+    class KarmaEmotes(enum.Enum):
         POSITIVE = 'dasmooi'
         NEGATIVE = 'dasnietmooi'
 
