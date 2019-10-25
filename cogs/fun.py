@@ -79,6 +79,7 @@ class Fun(commands.Cog):
 
     # The base command for the dasmooi settings
     @commands.group(name='dasmooi')
+    @commands.is_owner()
     async def on_update_das_mooi_settings(self, ctx):
         if ctx.invoked_subcommand is None:
             await ctx.send('Please use one of the following subcommands: '
