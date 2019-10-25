@@ -185,18 +185,35 @@ class Fun(commands.Cog):
                     database.settings.get_das_mooi_channel()) \
                     if emoji.name == self.KarmaEmotes.POSITIVE.value \
                     else self.bot.get_channel(database.settings.get_das_niet_mooi_channel())
-                await channel.send(
-                    f"A new message by {message.author.mention} arrived:\n"
-                    f"> {message.content}\n"
-                    f"> \n"
-                    f"> {message.jump_url}\n",
-                    files=await to_files(message.attachments))
+                colour: discord.colour.Colour = discord.colour.Colour.green() \
+                    if emoji.name == self.KarmaEmotes.POSITIVE.value \
+                    else discord.colour.Colour.red()
+                embed: discord.Embed = discord.Embed(title='New Message',
+                                                     description=message.content,
+                                                     url=message.jump_url,
+                                                     colour=colour) \
+                    .set_author(name=message.author.name,
+                                icon_url=message.author.avatar_url)
 
-
-# Turn attachments into files
-async def to_files(attachments):
-    return [File(io.BytesIO(await attachment.read()), filename=attachment.filename)
-            for attachment in attachments]
+                if len(message.attachments) == 0:
+                    await channel.send(embed=embed)
+                elif len(message.attachments) == 1:
+                    attachment = message.attachments[0]
+                    if attachment.filename.endswith('.png') \
+                            or attachment.filename.endswith('.jpg') \
+                            or attachment.filename.endswith('.jpeg'):
+                        embed.set_image(url=attachment.url)
+                        await channel.send(embed=embed)
+                    else:
+                        await channel.send(embed=embed)
+                        await channel.send(file=File(io.BytesIO(await attachment.read()),
+                                                     filename=attachment.filename))
+                else:
+                    await channel.send(embed=embed)
+                    for file in \
+                            [File(io.BytesIO(await attachment.read()), filename=attachment.filename)
+                             for attachment in message.attachments if not attachment.is_spoiler()]:
+                        await channel.send(file=file)
 
 
 def setup(bot):
