@@ -2,7 +2,6 @@ import enum
 import io
 import random
 
-import aiohttp
 import discord
 from discord import File
 from discord.ext import commands
@@ -187,13 +186,8 @@ class Fun(commands.Cog):
 
 # Turn attachments into files
 async def to_files(attachments):
-    files = []
-
-    for attachment in attachments:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(attachment.url) as resp:
-                files.append(File(io.BytesIO(await resp.read()), filename=attachment.filename))
-    return files
+    return [File(io.BytesIO(await attachment.read()), filename=attachment.filename)
+            for attachment in attachments]
 
 
 def setup(bot):
