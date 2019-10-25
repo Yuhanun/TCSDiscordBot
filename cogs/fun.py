@@ -11,7 +11,7 @@ from backend import database
 
 
 def is_in_guild(guild_id):
-    async def predicate(ctx):
+    async def predicate(ctx: Context):
         return ctx.guild and ctx.guild.id == guild_id
 
     return commands.check(predicate)
@@ -130,47 +130,56 @@ class Fun(commands.Cog):
             f'*({response[0]} Positives and {response[1]} Negatives)*')
 
     @commands.Cog.listener()
-    async def on_reaction_add(self, reaction: discord.Reaction, member: discord.Member):
-        await self.change_karma_check(reaction, member, True)
-        await self.forward_message_check(reaction)
+    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+        emoji: discord.emoji.PartialEmoji = payload.emoji
+        guild: discord.Guild = self.bot.get_guild(payload.guild_id)
+        member: discord.Member = guild.get_member(payload.user_id)
+        channel: discord.TextChannel = guild.get_channel(payload.channel_id)
+        message: discord.Message = await channel.fetch_message(payload.message_id)
+        if member and message.author:
+            await self.change_karma_check(emoji, member, message, True)
+            await self.forward_message_check(emoji, message)
 
     @commands.Cog.listener()
-    async def on_reaction_remove(self, reaction: discord.Reaction, member: discord.Member):
-        await self.change_karma_check(reaction, member, False)
+    async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
+        emoji: discord.emoji.PartialEmoji = payload.emoji
+        guild: discord.Guild = self.bot.get_guild(payload.guild_id)
+        member: discord.Member = guild.get_member(payload.user_id)
+        channel: discord.TextChannel = guild.get_channel(payload.channel_id)
+        message: discord.Message = await channel.fetch_message(payload.message_id)
+        await self.change_karma_check(emoji, member, message, False)
 
     class KarmaEmotes(enum.Enum):
         POSITIVE = 'dasmooi'
         NEGATIVE = 'dasnietmooi'
 
     # Check if the karma count should be changed, if so, change it
-    async def change_karma_check(self, reaction: discord.Reaction, member: discord.Member,
-                                 increment: bool):
+    async def change_karma_check(self, emoji: discord.emoji.PartialEmoji, member: discord.Member,
+                                 message: discord.Message, increment: bool):
         # Check if the user doesn't want to give karma to themselves.
         # It is also important that Tegel's opinion doesn't count.
-        if self.enabled and member != reaction.message.author \
+        if self.enabled and member != message.author \
                 and not discord.utils.get(member.roles, name='Tegel'):
-            emoji: discord.emoji.Emoji = reaction.emoji
-            # Check if the emoji is a karma emoji
-            if type(emoji) == discord.emoji.Emoji:
-                if emoji.name == self.KarmaEmotes.POSITIVE.value:
-                    # Update the positive karma
-                    await database.update_karma(reaction.message.author.id,
-                                                (1 if increment else -1, 0))
-                elif emoji.name == self.KarmaEmotes.NEGATIVE.value:
-                    # Update the negative karma
-                    await database.update_karma(reaction.message.author.id,
-                                                (0, 1 if increment else -1))
+            if emoji.name == self.KarmaEmotes.POSITIVE.value:
+                # Update the positive karma
+                await database.update_karma(message.author.id,
+                                            (1 if increment else -1, 0))
+            elif emoji.name == self.KarmaEmotes.NEGATIVE.value:
+                # Update the negative karma
+                await database.update_karma(message.author.id,
+                                            (0, 1 if increment else -1))
 
     # Check if the message obtained enough karma to get forwarded to another channel
-    async def forward_message_check(self, reaction: discord.Reaction):
-        message: discord.Message = reaction.message
+    async def forward_message_check(self, emoji: discord.emoji.PartialEmoji,
+                                    message: discord.Message):
+        count: int = [reaction.count for reaction in message.reactions
+                      if type(reaction.emoji) == discord.emoji.Emoji
+                      and reaction.emoji.name == emoji.name][0]
         if self.enabled and not message.author.bot \
-                and reaction.count >= database.settings.get_das_mooi_threshold() \
+                and count >= database.settings.get_das_mooi_threshold() \
                 and message.id not in self.forwarded_messages:
-            emoji: discord.emoji.Emoji = reaction.emoji
-            if type(emoji) == discord.emoji.Emoji and (emoji.name == self.KarmaEmotes.POSITIVE.value
-                                                       or emoji.name ==
-                                                       self.KarmaEmotes.NEGATIVE.value):
+            if emoji.name == self.KarmaEmotes.POSITIVE.value \
+                    or emoji.name == self.KarmaEmotes.NEGATIVE.value:
                 self.forwarded_messages.append(message.id)
                 channel = self.bot.get_channel(
                     database.settings.get_das_mooi_channel()) \

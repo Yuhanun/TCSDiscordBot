@@ -10,8 +10,8 @@ class Settings:
 
     def __init__(self, version: int = CURRENT_VERSION,
                  das_mooi_threshold: int = 5,
-                 das_mooi_channel: int = 636253313234370583,
-                 das_niet_mooi_channel: int = 637177477265096724):
+                 das_mooi_channel: int = 637237240766136331,
+                 das_niet_mooi_channel: int = 637237272864882688):
         self._version = version
         self._das_mooi_threshold = das_mooi_threshold
         self._das_mooi_channel = das_mooi_channel
