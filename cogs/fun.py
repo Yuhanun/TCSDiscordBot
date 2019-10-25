@@ -1,7 +1,6 @@
 import enum
 import io
 import random
-import urllib
 
 import aiohttp
 import discord
@@ -10,6 +9,13 @@ from discord.ext import commands
 from discord.ext.commands import Context
 
 from backend import database
+
+
+def is_in_guild(guild_id):
+    async def predicate(ctx):
+        return ctx.guild and ctx.guild.id == guild_id
+
+    return commands.check(predicate)
 
 
 class Fun(commands.Cog):
@@ -79,7 +85,8 @@ class Fun(commands.Cog):
 
     # The base command for the dasmooi settings
     @commands.group(name='dasmooi')
-    @commands.is_owner()
+    @is_in_guild(613755161633882112)
+    @commands.has_role('Committee')
     async def on_update_das_mooi_settings(self, ctx):
         if ctx.invoked_subcommand is None:
             await ctx.send('Please use one of the following subcommands: '
