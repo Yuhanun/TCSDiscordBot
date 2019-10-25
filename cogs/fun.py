@@ -21,7 +21,6 @@ class Fun(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.enabled = True
         self.bot = bot
-        self.forwarded_messages = []
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -60,7 +59,7 @@ class Fun(commands.Cog):
             return
         if message.author.bot:
             return
-        if not "this is so sad" in message.content.lower():
+        if "this is so sad" not in message.content.lower():
             return
         await message.channel.send("Alexa, play Despacito")
 
@@ -176,44 +175,46 @@ class Fun(commands.Cog):
                       if type(reaction.emoji) == discord.emoji.Emoji
                       and reaction.emoji.name == emoji.name][0]
         if self.enabled and not message.author.bot \
-                and count >= database.settings.get_das_mooi_threshold() \
-                and message.id not in self.forwarded_messages:
+                and count >= database.settings.get_das_mooi_threshold():
             if emoji.name == self.KarmaEmotes.POSITIVE.value \
                     or emoji.name == self.KarmaEmotes.NEGATIVE.value:
-                self.forwarded_messages.append(message.id)
-                channel = self.bot.get_channel(
-                    database.settings.get_das_mooi_channel()) \
-                    if emoji.name == self.KarmaEmotes.POSITIVE.value \
-                    else self.bot.get_channel(database.settings.get_das_niet_mooi_channel())
-                colour: discord.colour.Colour = discord.colour.Colour.green() \
-                    if emoji.name == self.KarmaEmotes.POSITIVE.value \
-                    else discord.colour.Colour.red()
-                embed: discord.Embed = discord.Embed(title='New Message',
-                                                     description=message.content,
-                                                     url=message.jump_url,
-                                                     colour=colour) \
-                    .set_author(name=message.author.name,
-                                icon_url=message.author.avatar_url)
+                positive: bool = emoji.name == self.KarmaEmotes.POSITIVE.value
+                if not await database.is_forwarded(message.id, positive):
+                    await database.add_forwarded_message(message.id, positive)
+                    channel = self.bot.get_channel(
+                        database.settings.get_das_mooi_channel()) \
+                        if positive \
+                        else self.bot.get_channel(database.settings.get_das_niet_mooi_channel())
+                    colour: discord.colour.Colour = discord.colour.Colour.green() \
+                        if positive else discord.colour.Colour.red()
+                    embed: discord.Embed = discord.Embed(title='New Message',
+                                                         description=message.content,
+                                                         url=message.jump_url,
+                                                         colour=colour) \
+                        .set_author(name=message.author.name,
+                                    icon_url=message.author.avatar_url)
 
-                if len(message.attachments) == 0:
-                    await channel.send(embed=embed)
-                elif len(message.attachments) == 1:
-                    attachment = message.attachments[0]
-                    if attachment.filename.endswith('.png') \
-                            or attachment.filename.endswith('.jpg') \
-                            or attachment.filename.endswith('.jpeg'):
-                        embed.set_image(url=attachment.url)
+                    if len(message.attachments) == 0:
                         await channel.send(embed=embed)
+                    elif len(message.attachments) == 1:
+                        attachment = message.attachments[0]
+                        if attachment.filename.endswith('.png') \
+                                or attachment.filename.endswith('.jpg') \
+                                or attachment.filename.endswith('.jpeg'):
+                            embed.set_image(url=attachment.url)
+                            await channel.send(embed=embed)
+                        else:
+                            await channel.send(embed=embed)
+                            await channel.send(file=File(io.BytesIO(await attachment.read()),
+                                                         filename=attachment.filename))
                     else:
                         await channel.send(embed=embed)
-                        await channel.send(file=File(io.BytesIO(await attachment.read()),
-                                                     filename=attachment.filename))
-                else:
-                    await channel.send(embed=embed)
-                    for file in \
-                            [File(io.BytesIO(await attachment.read()), filename=attachment.filename)
-                             for attachment in message.attachments if not attachment.is_spoiler()]:
-                        await channel.send(file=file)
+                        for file in \
+                                [File(io.BytesIO(await attachment.read()),
+                                      filename=attachment.filename)
+                                 for attachment in message.attachments
+                                 if not attachment.is_spoiler()]:
+                            await channel.send(file=file)
 
 
 def setup(bot):
