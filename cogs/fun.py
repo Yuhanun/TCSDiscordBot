@@ -1,7 +1,11 @@
 import enum
+import io
 import random
+import urllib
 
+import aiohttp
 import discord
+from discord import File
 from discord.ext import commands
 from discord.ext.commands import Context
 
@@ -12,6 +16,7 @@ class Fun(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.enabled = True
         self.bot = bot
+        self.forwarded_messages = []
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -43,6 +48,17 @@ class Fun(commands.Cog):
                        "<:tegel2:634119528330035200>"
                        "<:tegel1:634119528439218206>")
 
+    # Replies "Alexa, play Despacito" to messages containing "this is so sad"
+    @commands.Cog.listener()
+    async def on_message(self, message: discord.Message):
+        if not self.enabled:
+            return
+        if message.author.bot:
+            return
+        if not "this is so sad" in message.content.lower():
+            return
+        await message.channel.send("Alexa, play Despacito")
+
     # Send the leaderboards in the following format:
     # {ranking}. {name} - {score} ({positives} Positives and {negatives} Negatives)
     @commands.command(name='wiezijnhetmooist',
@@ -60,6 +76,33 @@ class Fun(commands.Cog):
     async def on_karma_worst_leaderboard_request(self, ctx: Context):
         message = self.order_leaderboard(await database.get_reversed_top_karma(10))
         await ctx.send(message if message else "Why don't you guys hate someone?")
+
+    # The base command for the dasmooi settings
+    @commands.group(name='dasmooi')
+    async def on_update_das_mooi_settings(self, ctx):
+        if ctx.invoked_subcommand is None:
+            await ctx.send('Please use one of the following subcommands: '
+                           'threshold <threshold>, positivechannel, negativechannel')
+
+    # The dasmooi settings command to update the threshold
+    @on_update_das_mooi_settings.command(name='threshold')
+    async def on_update_das_mooi_threshold(self, ctx, threshold: int):
+        await database.settings.set_das_mooi_threshold(threshold)
+        await ctx.send(f'Updated the das mooi threshold to: {threshold}.')
+
+    # The dasmooi settings command to update the positive forward channel to the current channel
+    @on_update_das_mooi_settings.command(name='positivechannel')
+    async def on_update_das_mooi_channel(self, ctx):
+        await database.settings.set_das_mooi_channel(ctx.channel.id)
+        await ctx.send(f'All positive messages which pass the das mooi threshold,'
+                       f' will be redirected to this channel')
+
+    # The dasmooi settings command to update the negative forward channel to the current channel
+    @on_update_das_mooi_settings.command(name='negativechannel')
+    async def on_update_das_niet_mooi_channel(self, ctx):
+        await database.settings.set_das_niet_mooi_channel(ctx.channel.id)
+        await ctx.send(f'All negative messages which pass the das mooi threshold,'
+                       f' will be redirected to this channel')
 
     # Returns a string in the following format:
     # {ranking}. {name} - {score} ({positives} Positives and {negatives} Negatives)
@@ -81,19 +124,20 @@ class Fun(commands.Cog):
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction, member: discord.Member):
-        await self.change_count(reaction, member, True)
+        await self.change_karma_check(reaction, member, True)
+        await self.forward_message_check(reaction)
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction: discord.Reaction, member: discord.Member):
-        await self.change_count(reaction, member, False)
+        await self.change_karma_check(reaction, member, False)
 
     class KarmaEmotes(enum.Enum):
         POSITIVE = 'dasmooi'
         NEGATIVE = 'dasnietmooi'
 
     # Check if the karma count should be changed, if so, change it
-    async def change_count(self, reaction: discord.Reaction, member: discord.Member,
-                           increment: bool):
+    async def change_karma_check(self, reaction: discord.Reaction, member: discord.Member,
+                                 increment: bool):
         # Check if the user doesn't want to give karma to themselves.
         # It is also important that Tegel's opinion doesn't count.
         if self.enabled and member != reaction.message.author \
@@ -110,16 +154,39 @@ class Fun(commands.Cog):
                     await database.update_karma(reaction.message.author.id,
                                                 (0, 1 if increment else -1))
 
-    # Replies "Alexa, play Despacito" to messages containing "this is so sad"
-    @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
-        if not self.enabled:
-            return
-        if message.author.bot:
-            return
-        if not "this is so sad" in message.content.lower():
-            return
-        await message.channel.send("Alexa, play Despacito")
+    # Check if the message obtained enough karma to get forwarded to another channel
+    async def forward_message_check(self, reaction: discord.Reaction):
+        message: discord.Message = reaction.message
+        if self.enabled and not message.author.bot \
+                and reaction.count >= database.settings.get_das_mooi_threshold() \
+                and message.id not in self.forwarded_messages:
+            emoji: discord.emoji.Emoji = reaction.emoji
+            if type(emoji) == discord.emoji.Emoji and (emoji.name == self.KarmaEmotes.POSITIVE.value
+                                                       or emoji.name ==
+                                                       self.KarmaEmotes.NEGATIVE.value):
+                self.forwarded_messages.append(message.id)
+                channel = self.bot.get_channel(
+                    database.settings.get_das_mooi_channel()) \
+                    if emoji.name == self.KarmaEmotes.POSITIVE.value \
+                    else self.bot.get_channel(database.settings.get_das_niet_mooi_channel())
+                await channel.send(
+                    f"A new message by {message.author.mention} arrived:\n"
+                    f"> {message.content}\n"
+                    f"> \n"
+                    f"> {message.jump_url}\n",
+                    files=await to_files(message.attachments))
+
+
+# Turn attachments into files
+async def to_files(attachments):
+    files = []
+
+    for attachment in attachments:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(attachment.url) as resp:
+                files.append(File(io.BytesIO(await resp.read()), filename=attachment.filename))
+    return files
+
 
 def setup(bot):
     bot.add_cog(Fun(bot))

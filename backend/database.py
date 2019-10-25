@@ -5,8 +5,45 @@ import aiosqlite
 DATABASE_LOCATION = 'tcs_bot.db'
 
 
+class Settings:
+    CURRENT_VERSION = 1
+
+    def __init__(self, version: int = CURRENT_VERSION,
+                 das_mooi_threshold: int = 5,
+                 das_mooi_channel: int = 636253313234370583,
+                 das_niet_mooi_channel: int = 637177477265096724):
+        self._version = version
+        self._das_mooi_threshold = das_mooi_threshold
+        self._das_mooi_channel = das_mooi_channel
+        self._das_niet_mooi_channel = das_niet_mooi_channel
+
+    def get_version(self) -> int:
+        return self._version
+
+    def get_das_mooi_threshold(self) -> int:
+        return self._das_mooi_threshold
+
+    def get_das_mooi_channel(self) -> int:
+        return self._das_mooi_channel
+
+    def get_das_niet_mooi_channel(self) -> int:
+        return self._das_niet_mooi_channel
+
+    async def set_das_mooi_threshold(self, das_mooi_threshold: int) -> None:
+        self._das_mooi_threshold = das_mooi_threshold
+        await _update_settings()
+
+    async def set_das_mooi_channel(self, das_mooi_channel: int) -> None:
+        self._das_mooi_channel = das_mooi_channel
+        await _update_settings()
+
+    async def set_das_niet_mooi_channel(self, das_niet_mooi_channel: int) -> None:
+        self._das_niet_mooi_channel = das_niet_mooi_channel
+        await _update_settings()
+
+
 # Create the default structure
-def create_tables():
+def create_tables() -> Settings:
     with sqlite3.connect(DATABASE_LOCATION) as connection:
         connection.execute("CREATE TABLE IF NOT EXISTS user "
                            "("
@@ -27,7 +64,45 @@ def create_tables():
                            ");")
         connection.execute("CREATE UNIQUE INDEX IF NOT EXISTS karma_user_id_uindex"
                            "    ON karma (user_id);")
+        # I know, this is a very bad idea, but John forced me to do this
+        connection.execute("CREATE TABLE IF NOT EXISTS setting"
+                           "("
+                           "    version                 INTEGER UNSIGNED NOT NULL,"
+                           "    das_mooi_threshold      INTEGER UNSIGNED NOT NULL,"
+                           "    das_mooi_channel        INTEGER UNSIGNED NOT NULL,"
+                           "    das_niet_mooi_channel   INTEGER UNSIGNED NOT NULL"
+                           ");")
         connection.commit()
+
+        cursor = connection.cursor()
+        cursor.execute("SELECT version, das_mooi_threshold, "
+                       "das_mooi_channel, das_niet_mooi_channel "
+                       "FROM setting")
+        settings = cursor.fetchone()
+        cursor.close()
+        if not settings:
+            settings = Settings()
+            connection.execute("INSERT INTO setting "
+                               "(version, das_mooi_threshold, "
+                               "das_mooi_channel, das_niet_mooi_channel) "
+                               "VALUES (?, ?, ?, ?)", (settings.get_version(),
+                                                       settings.get_das_mooi_threshold(),
+                                                       settings.get_das_mooi_channel(),
+                                                       settings.get_das_niet_mooi_channel()))
+            return settings
+        else:
+            return Settings(settings[0], settings[1], settings[2], settings[3])
+
+
+async def _update_settings():
+    async with aiosqlite.connect(DATABASE_LOCATION) as connection:
+        await connection.execute("UPDATE setting SET "
+                                 "das_mooi_threshold=?, "
+                                 "das_mooi_channel=?, "
+                                 "das_niet_mooi_channel=?;", (settings.get_das_mooi_threshold(),
+                                                              settings.get_das_mooi_channel(),
+                                                              settings.get_das_niet_mooi_channel()))
+        await connection.commit()
 
 
 # Get the leading karma users
@@ -84,4 +159,4 @@ async def update_karma(discord_id: int, karma: (int, int)):
 
 
 # Set up the defaults
-create_tables()
+settings = create_tables()
