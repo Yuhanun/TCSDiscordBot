@@ -119,7 +119,7 @@ class Fun(commands.Cog):
                           f'*({x[1][1]} Positives and {x[1][2]} Negatives)*'
                           for x in enumerate(karma)])
 
-    # Send a current status for a given player in the following format:
+    # Send a current status for the player that requested it in the following format:
     # {mention} - Your current score is: {score} ({positives} Positives and {negatives} Negatives)
     @commands.command(name='hoemooibenik', aliases=['howmooiami'])
     async def on_karma_self_request(self, ctx: Context):
@@ -127,6 +127,15 @@ class Fun(commands.Cog):
         response: (int, int) = await database.get_karma(author.id)
         await ctx.send(
             f'{author.mention} - Your current score is: **{response[0] - response[1]}** '
+            f'*({response[0]} Positives and {response[1]} Negatives)*')
+
+    # Send a current status for a given player in the following format:
+    # {Username}'s current score is: {score} ({positives} Positives and {negatives} Negatives)
+    @commands.command(name='hoemooiis', aliases=['howmooiis'])
+    async def on_karma_user_request(self, ctx: Context, user: discord.User):
+        response: (int, int) = await database.get_karma(user.id)
+        await ctx.send(
+            f'{user.name}\'s current score is: **{response[0] - response[1]}** '
             f'*({response[0]} Positives and {response[1]} Negatives)*')
 
     @commands.Cog.listener()
