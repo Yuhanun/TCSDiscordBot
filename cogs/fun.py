@@ -43,6 +43,9 @@ class Fun(commands.Cog):
     # therefore, there isn't a need to waste emote space on the TCS discord
     @commands.command(name="tutkegel")
     async def tutkegel(self, ctx):
+        """
+	    Send 3x3 tutkegel emotes
+        """
         await ctx.send("<:tegel9:634119527680180261>"
                        "<:tegel8:634119528158199841>"
                        "<:tegel7:634119527927513089>"
@@ -70,6 +73,9 @@ class Fun(commands.Cog):
                       aliases=['whoarehetmooist', 'spiegeltjespiegeltjeaandewand',
                                'wieishetmooist', 'mirrormirroronthewall'])
     async def on_karma_leaderboard_request(self, ctx: Context):
+        """
+        Show the dasmooi-karma leaderboard
+        """
         message = self.order_leaderboard(await database.get_top_karma(10))
         await ctx.send(message if message else 'Nobody is mooi')
 
@@ -79,6 +85,9 @@ class Fun(commands.Cog):
                       aliases=['whoarehetleastmooi', 'trash', 'whoishetleastmooi',
                                'wieishetminstmooi'])
     async def on_karma_worst_leaderboard_request(self, ctx: Context):
+        """
+        Show the negative dasmooi-karma leaderboard
+        """
         message = self.order_leaderboard(await database.get_reversed_top_karma(10))
         await ctx.send(message if message else "Why don't you guys hate someone?")
 
@@ -119,14 +128,29 @@ class Fun(commands.Cog):
                           f'*({x[1][1]} Positives and {x[1][2]} Negatives)*'
                           for x in enumerate(karma)])
 
-    # Send a current status for a given player in the following format:
+    # Send a current status for the player that requested it in the following format:
     # {mention} - Your current score is: {score} ({positives} Positives and {negatives} Negatives)
     @commands.command(name='hoemooibenik', aliases=['howmooiami'])
     async def on_karma_self_request(self, ctx: Context):
+        """
+        Show how much dasmooi-karma you have
+        """
         author: discord.User = ctx.author
         response: (int, int) = await database.get_karma(author.id)
         await ctx.send(
             f'{author.mention} - Your current score is: **{response[0] - response[1]}** '
+            f'*({response[0]} Positives and {response[1]} Negatives)*')
+
+    # Send a current status for a given player in the following format:
+    # {Username}'s current score is: {score} ({positives} Positives and {negatives} Negatives)
+    @commands.command(name='hoemooiis', aliases=['howmooiis'])
+    async def on_karma_user_request(self, ctx: Context, user: discord.User):
+        """
+        Show how much dasmooi-karma someone has
+        """
+        response: (int, int) = await database.get_karma(user.id)
+        await ctx.send(
+            f'{user.name}\'s current score is: **{response[0] - response[1]}** '
             f'*({response[0]} Positives and {response[1]} Negatives)*')
 
     @commands.Cog.listener()
