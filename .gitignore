@@ -109,3 +109,4 @@ venv.bak/
 # Discord
 token.txt
 tcs_bot.db
+backend/main_guild.py

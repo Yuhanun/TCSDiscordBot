@@ -7,11 +7,9 @@ from discord.ext import commands
 from discord.ext.commands import Context
 
 from backend import database 
+from backend import main_guild
 
-# !!! Important: Make sure @is_in_guild(guild_id) is set to 613755161633882112 before you push
-#     When testing: set it to the id of your test server
-#     Mark was too lazy to make this work properly smh
-#     (@is_in_guild(guid_id) is in the dasmooi command-group)
+# If the .dasmooi commands don't work, change main_guild in backend/main_guild.py
 def is_in_guild(guild_id):
     async def predicate(ctx: Context):
         return ctx.guild and ctx.guild.id == guild_id
@@ -29,7 +27,7 @@ class DasMooi(commands.Cog):
 
     # The base command for the dasmooi settings
     @commands.group(name='dasmooi')
-    @is_in_guild(303962809627181057)
+    @is_in_guild(main_guild.main_guild)
     @commands.has_role('Committee')
     async def on_update_das_mooi_settings(self, ctx):
         if ctx.invoked_subcommand is None:
