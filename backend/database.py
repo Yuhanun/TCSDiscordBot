@@ -10,8 +10,8 @@ class Settings:
 
     def __init__(self, version: int = CURRENT_VERSION,
                  das_mooi_threshold: int = 5,
-                 das_mooi_channel: int = 636253313234370583,
-                 das_niet_mooi_channel: int = 637177477265096724):
+                 das_mooi_channel: int = 637237240766136331,
+                 das_niet_mooi_channel: int = 637237272864882688):
         self._version = version
         self._das_mooi_threshold = das_mooi_threshold
         self._das_mooi_channel = das_mooi_channel
@@ -64,6 +64,13 @@ def create_tables() -> Settings:
                            ");")
         connection.execute("CREATE UNIQUE INDEX IF NOT EXISTS karma_user_id_uindex"
                            "    ON karma (user_id);")
+        connection.execute("CREATE TABLE IF NOT EXISTS forwarded_messages"
+                           "("
+                           "    message_id INTEGER UNSIGNED NOT NULL,"
+                           "    positive BOOLEAN NOT NULL,"
+                           "    CONSTRAINT forwarded_message_pk"
+                           "        UNIQUE (message_id, positive)"
+                           ");")
         # I know, this is a very bad idea, but John forced me to do this
         connection.execute("CREATE TABLE IF NOT EXISTS setting"
                            "("
@@ -94,7 +101,8 @@ def create_tables() -> Settings:
             return Settings(settings[0], settings[1], settings[2], settings[3])
 
 
-async def _update_settings():
+# Update the settings in the database
+async def _update_settings() -> None:
     async with aiosqlite.connect(DATABASE_LOCATION) as connection:
         await connection.execute("UPDATE setting SET "
                                  "das_mooi_threshold=?, "
@@ -143,7 +151,7 @@ async def get_karma(discord_id: int) -> (int, int):
 
 
 # Update the karma counts for a specific user
-async def update_karma(discord_id: int, karma: (int, int)):
+async def update_karma(discord_id: int, karma: (int, int)) -> None:
     async with aiosqlite.connect(DATABASE_LOCATION) as connection:
         await connection.execute("INSERT OR IGNORE INTO user (discord_id) VALUES (?);",
                                  [discord_id])
@@ -155,6 +163,23 @@ async def update_karma(discord_id: int, karma: (int, int)):
                                  "negative = negative + ?;",
                                  [discord_id, max(karma[0], 0), max(karma[1], 0), karma[0],
                                   karma[1]])
+        await connection.commit()
+
+
+async def is_forwarded(message_id: int, positive: bool) -> bool:
+    async with aiosqlite.connect(DATABASE_LOCATION) as connection:
+        async with connection.execute("SELECT message_id "
+                                      "FROM forwarded_messages "
+                                      "WHERE message_id=? AND positive=?;",
+                                      (message_id, positive)) as cursor:
+            return await cursor.fetchone() is not None
+
+
+async def add_forwarded_message(message_id: int, positive: bool) -> None:
+    async with aiosqlite.connect(DATABASE_LOCATION) as connection:
+        await connection.execute("INSERT INTO forwarded_messages "
+                                 "(message_id, positive) "
+                                 "VALUES (?, ?);", (message_id, positive))
         await connection.commit()
 
 
