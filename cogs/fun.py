@@ -212,7 +212,7 @@ class Fun(commands.Cog):
                     colour: discord.colour.Colour = discord.colour.Colour.green() \
                         if positive else discord.colour.Colour.red()
                     embed: discord.Embed = discord.Embed(title='New Message',
-                                                         description=message.content,
+                                                         description=message.clean_content,
                                                          url=message.jump_url,
                                                          colour=colour) \
                         .set_author(name=message.author.name,
