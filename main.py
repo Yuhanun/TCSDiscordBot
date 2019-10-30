@@ -22,7 +22,8 @@ if __name__ == "__main__":
         "cogs.rolehelper",
         "cogs.moderation",
         "cogs.fun",
-        "cogs.rtfm"
+        "cogs.rtfm",
+        "cogs.dasmooi"
     ]
     [bot.load_extension(ext) for ext in extensions]
     bot.run(TOKEN)
