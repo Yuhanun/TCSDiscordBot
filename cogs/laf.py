@@ -35,7 +35,7 @@ class Laf(commands.Cog):
                                'wieishetlafst', 'laffehomos' , 'kleinespelers'])
     async def on_karma_leaderboard_request(self, ctx: Context):
         """
-        Show the dasmooi-karma leaderboard
+        Show the most laf users
         """
         message = self.order_leaderboard(await database.get_top_karma(10))
         await ctx.send(message if message else 'Nobody is mooi')
@@ -46,7 +46,7 @@ class Laf(commands.Cog):
                                'wieishetminstlaf'])
     async def on_karma_worst_leaderboard_request(self, ctx: Context):
         """
-        Show the negative dasmooi-karma leaderboard
+        Show the least laf users
         """
         message = self.order_leaderboard(await database.get_reversed_top_laf(10))
         await ctx.send(message if message else "Why don't you guys call someone laf? @P1mguin, for example")
@@ -64,7 +64,7 @@ class Laf(commands.Cog):
     @commands.command(name='hoelafbenik', aliases=['howlafami'])
     async def on_karma_self_request(self, ctx: Context):
         """
-        Show how much dasmooi-karma you have
+        Show how laf you are
         """
         author: discord.User = ctx.author
         response: (int, int) = await database.get_laf(author.id)
@@ -76,7 +76,7 @@ class Laf(commands.Cog):
     @commands.command(name='hoelafis', aliases=['howlafis'])
     async def on_karma_user_request(self, ctx: Context, user: discord.User):
         """
-        Show how much dasmooi-karma someone has
+        Show how laf someone is
         """
         response: (int, int) = await database.get_laf(user.id)
         await ctx.send(
