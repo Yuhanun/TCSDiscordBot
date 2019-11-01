@@ -71,6 +71,13 @@ def create_tables() -> Settings:
                            "    CONSTRAINT forwarded_message_pk"
                            "        UNIQUE (message_id, positive)"
                            ");")
+        connection.execute("CREATE TABLE IF NOT EXISTS laf_counter"
+                           "("
+                           "    user_id INTEGER UNSIGNED NOT NULL"
+                           "        REFERENCES user"
+                           "            ON UPDATE CASCADE ON DELETE CASCADE,"
+                           "    count   INTEGER UNSIGNED NOT NULL"
+                           ");")
         # I know, this is a very bad idea, but John forced me to do this
         connection.execute("CREATE TABLE IF NOT EXISTS setting"
                            "("
@@ -163,6 +170,55 @@ async def update_karma(discord_id: int, karma: (int, int)) -> None:
                                  "negative = negative + ?;",
                                  [discord_id, max(karma[0], 0), max(karma[1], 0), karma[0],
                                   karma[1]])
+        await connection.commit()
+
+
+# Get the most laffe users
+async def get_top_laf(limit: int) -> [(int, int)]:
+    async with aiosqlite.connect(DATABASE_LOCATION) as connection:
+        async with connection.execute("SELECT u.discord_id, l.count "
+                                      "FROM user u "
+                                      "JOIN laf_counter l ON u.id = l.user_id "
+                                      "ORDER BY (l.count) DESC "
+                                      "LIMIT ?;", [limit]) as cursor:
+            leaders = await cursor.fetchall()
+            return leaders if leaders else []
+
+
+# Get the least laffe users
+async def get_reversed_top_laf(limit: int) -> [(int, int)]:
+    async with aiosqlite.connect(DATABASE_LOCATION) as connection:
+        async with connection.execute("SELECT u.discord_id, l.count "
+                                      "FROM user u "
+                                      "JOIN laf_counter l ON u.id = l.user_id "
+                                      "ORDER BY (l.count) ASC "
+                                      "LIMIT ?;", [limit]) as cursor:
+            leaders = await cursor.fetchall()
+            return leaders if leaders else []
+
+
+# Get the laf_counter for a specific user
+async def get_laf(discord_id: int) -> (int):
+    async with aiosqlite.connect(DATABASE_LOCATION) as connection:
+        async with connection.execute("SELECT l.count "
+                                      "FROM user u "
+                                      "JOIN laf_counter l ON u.id = l.user_id "
+                                      "WHERE u.discord_id=?;", [discord_id]) as cursor:
+            karma = await cursor.fetchone()
+            return karma if karma else (0, 0)
+
+
+# Update the laf_counter for a specific user
+async def update_laf(discord_id: int, count: int) -> None:
+    async with aiosqlite.connect(DATABASE_LOCATION) as connection:
+        await connection.execute("INSERT OR IGNORE INTO user (discord_id) VALUES (?);",
+                                 [discord_id])
+        await connection.execute("INSERT INTO laf_counter "
+                                 "(user_id, counter) "
+                                 "VALUES ((SELECT id FROM user WHERE discord_id=?), ?) "
+                                 "ON CONFLICT(user_id) DO UPDATE SET "
+                                 "counter = counter + ?; ",
+                                 [discord_id, max(count, 0), count ])
         await connection.commit()
 
 
