@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Context
 
-from backend import database 
+from backend import database
 
 class Laf(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -12,11 +12,6 @@ class Laf(commands.Cog):
     # Increments the laf_counter if someone gets called laf
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        ctx = await bot.get_context(message)
-        if ctx.valid:
-            # checks if the message is a valid command
-            # otherwise .hoelafis @user would also increase the count
-            return
         if not self.enabled:
             return
         if message.author.bot:
@@ -24,6 +19,16 @@ class Laf(commands.Cog):
         if "laf" not in message.content.lower():
             return
         if not message.mentions:
+            return
+
+        # checks if the message is a valid command
+        # otherwise .hoelafis @user would also increase the count
+        # im sorry about the try catch block
+        try:
+            ctx = await bot.get_context(message)
+        except NameError:
+            return  
+        if ctx.valid:
             return
         
         for mention in message.mentions:
