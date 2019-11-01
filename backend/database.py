@@ -73,7 +73,7 @@ def create_tables() -> Settings:
                            ");")
         connection.execute("CREATE TABLE IF NOT EXISTS laf_counter"
                            "("
-                           "    user_id INTEGER UNSIGNED NOT NULL"
+                           "    user_id INTEGER UNSIGNED NOT NULL UNIQUE"
                            "        REFERENCES user"
                            "            ON UPDATE CASCADE ON DELETE CASCADE,"
                            "    count   INTEGER UNSIGNED NOT NULL"
@@ -198,14 +198,14 @@ async def get_reversed_top_laf(limit: int) -> [(int, int)]:
 
 
 # Get the laf_counter for a specific user
-async def get_laf(discord_id: int) -> (int):
+async def get_laf(discord_id: int) -> int:
     async with aiosqlite.connect(DATABASE_LOCATION) as connection:
         async with connection.execute("SELECT l.count "
                                       "FROM user u "
                                       "JOIN laf_counter l ON u.id = l.user_id "
                                       "WHERE u.discord_id=?;", [discord_id]) as cursor:
-            karma = await cursor.fetchone()
-            return karma if karma else (0, 0)
+            laf_counter = await cursor.fetchone()
+            return laf_counter[0] if laf_counter else 0
 
 
 # Update the laf_counter for a specific user
@@ -214,10 +214,10 @@ async def update_laf(discord_id: int, count: int) -> None:
         await connection.execute("INSERT OR IGNORE INTO user (discord_id) VALUES (?);",
                                  [discord_id])
         await connection.execute("INSERT INTO laf_counter "
-                                 "(user_id, counter) "
+                                 "(user_id, count) "
                                  "VALUES ((SELECT id FROM user WHERE discord_id=?), ?) "
                                  "ON CONFLICT(user_id) DO UPDATE SET "
-                                 "counter = counter + ?; ",
+                                 "count = count + ?; ",
                                  [discord_id, max(count, 0), count ])
         await connection.commit()
 

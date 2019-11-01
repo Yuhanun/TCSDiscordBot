@@ -3,6 +3,8 @@ import random
 import discord
 from discord.ext import commands
 
+from backend import database
+
 class Fun(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.enabled = True
@@ -29,7 +31,7 @@ class Fun(commands.Cog):
     @commands.command(name="tutkegel")
     async def tutkegel(self, ctx):
         """
-	    Send 3x3 tutkegel emotes
+        Send 3x3 tutkegel emotes
         """
         await ctx.send("<:tegel9:634119527680180261>"
                        "<:tegel8:634119528158199841>"
