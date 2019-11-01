@@ -3,8 +3,6 @@ import random
 import discord
 from discord.ext import commands
 
-from backend import database
-
 class Fun(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.enabled = True
