@@ -29,7 +29,7 @@ class Fun(commands.Cog):
     @commands.command(name="tutkegel")
     async def tutkegel(self, ctx):
         """
-	    Send 3x3 tutkegel emotes
+        Send 3x3 tutkegel emotes
         """
         await ctx.send("<:tegel9:634119527680180261>"
                        "<:tegel8:634119528158199841>"
