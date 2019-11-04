@@ -27,7 +27,7 @@ class Laf(commands.Cog):
         try:
             ctx = await bot.get_context(message)
         except NameError:
-            return  
+            pass  
         if ctx.valid:
             return
         
