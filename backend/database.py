@@ -4,7 +4,7 @@ import inspect
 
 # print(self.bot._db)
 
-DATABASE_LOCATION = 'tcs_bot.db'
+from backend.config import DATABASE_LOCATION
 
 
 class Settings:
