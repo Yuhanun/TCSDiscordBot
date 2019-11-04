@@ -21,3 +21,4 @@ houses = {
     'TakingCtrl':'Green',
     'Fearless':'Green'
 }
+DATABASE_LOCATION = 'tcs_bot.db'

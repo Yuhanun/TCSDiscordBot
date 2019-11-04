@@ -26,13 +26,13 @@ class Laf(commands.Cog):
         # im sorry about the try catch block
         try:
             ctx = await bot.get_context(message)
+            if ctx.valid:
+                return
         except NameError:
-            return  
-        if ctx.valid:
-            return
+            pass
         
         for mention in message.mentions:
-            await database.update_laf(mention.id, 1)
+            await database.update_laf(self,mention.id, 1)
 
     # Send the leaderboards:
     @commands.command(name='wiezijnhetlafst',
@@ -42,7 +42,7 @@ class Laf(commands.Cog):
         """
         Show the most laf users
         """
-        message = self.order_leaderboard(await database.get_top_karma(10))
+        message = self.order_leaderboard(await database.get_top_laf(self,10))
         await ctx.send(message if message else 'Nobody is mooi')
 
     # Send the negative leaderboards:
@@ -53,7 +53,7 @@ class Laf(commands.Cog):
         """
         Show the least laf users
         """
-        message = self.order_leaderboard(await database.get_reversed_top_laf(10))
+        message = self.order_leaderboard(await database.get_reversed_top_laf(self,10))
         await ctx.send(message if message else "Why don't you guys call someone laf? @P1mguin, for example")
 
 
@@ -72,7 +72,7 @@ class Laf(commands.Cog):
         Show how laf you are
         """
         author: discord.User = ctx.author
-        response: (int, int) = await database.get_laf(author.id)
+        response: (int, int) = await database.get_laf(self,author.id)
         await ctx.send(
             f'{author.mention} - Your were called laf {response}x ')
 
@@ -83,7 +83,7 @@ class Laf(commands.Cog):
         """
         Show how laf someone is
         """
-        response: (int, int) = await database.get_laf(user.id)
+        response: (int, int) = await database.get_laf(self,user.id)
         await ctx.send(
             f'{user.name} has been called laf {response}x ')
 

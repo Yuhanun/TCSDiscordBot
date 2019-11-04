@@ -37,20 +37,23 @@ class DasMooi(commands.Cog):
     # The dasmooi settings command to update the threshold
     @on_update_das_mooi_settings.command(name='threshold')
     async def on_update_das_mooi_threshold(self, ctx, threshold: int):
-        await database.settings.set_das_mooi_threshold(threshold)
+        connection = self.bot._db
+        await database.settings.set_das_mooi_threshold(connection,threshold)
         await ctx.send(f'Updated the das mooi threshold to: {threshold}.')
 
     # The dasmooi settings command to update the positive forward channel to the current channel
     @on_update_das_mooi_settings.command(name='positivechannel')
     async def on_update_das_mooi_channel(self, ctx):
-        await database.settings.set_das_mooi_channel(ctx.channel.id)
+        connection = self.bot._db
+        await database.settings.set_das_mooi_channel(connection,ctx.channel.id)
         await ctx.send(f'All positive messages which pass the das mooi threshold,'
                        f' will be redirected to this channel')
 
     # The dasmooi settings command to update the negative forward channel to the current channel
     @on_update_das_mooi_settings.command(name='negativechannel')
     async def on_update_das_niet_mooi_channel(self, ctx):
-        await database.settings.set_das_niet_mooi_channel(ctx.channel.id)
+        connection = self.bot._db
+        await database.settings.set_das_niet_mooi_channel(connection,ctx.channel.id)
         await ctx.send(f'All negative messages which pass the das mooi threshold,'
                        f' will be redirected to this channel')
 
@@ -68,7 +71,7 @@ class DasMooi(commands.Cog):
         """
         Show the dasmooi-karma leaderboard
         """
-        message = self.order_leaderboard(await database.get_top_karma(10))
+        message = self.order_leaderboard(await database.get_top_karma(self,10))
         await ctx.send(message if message else 'Nobody is mooi')
 
     # Send the negative leaderboards in the following format:
@@ -80,7 +83,7 @@ class DasMooi(commands.Cog):
         """
         Show the negative dasmooi-karma leaderboard
         """
-        message = self.order_leaderboard(await database.get_reversed_top_karma(10))
+        message = self.order_leaderboard(await database.get_reversed_top_karma(self,10))
         await ctx.send(message if message else "Why don't you guys hate someone?")
 
 
@@ -100,7 +103,7 @@ class DasMooi(commands.Cog):
         Show how much dasmooi-karma you have
         """
         author: discord.User = ctx.author
-        response: (int, int) = await database.get_karma(author.id)
+        response: (int, int) = await database.get_karma(self,author.id)
         await ctx.send(
             f'{author.mention} - Your current score is: **{response[0] - response[1]}** '
             f'*({response[0]} Positives and {response[1]} Negatives)*')
@@ -112,7 +115,7 @@ class DasMooi(commands.Cog):
         """
         Show how much dasmooi-karma someone has
         """
-        response: (int, int) = await database.get_karma(user.id)
+        response: (int, int) = await database.get_karma(self,user.id)
         await ctx.send(
             f'{user.name}\'s current score is: **{response[0] - response[1]}** '
             f'*({response[0]} Positives and {response[1]} Negatives)*')
@@ -154,11 +157,11 @@ class DasMooi(commands.Cog):
                 and not discord.utils.get(member.roles, name='Tegel'):
             if emoji.name == self.KarmaEmotes.POSITIVE.value:
                 # Update the positive karma
-                await database.update_karma(message.author.id,
+                await database.update_karma(self,message.author.id,
                                             (1 if increment else -1, 0))
             elif emoji.name == self.KarmaEmotes.NEGATIVE.value:
                 # Update the negative karma
-                await database.update_karma(message.author.id,
+                await database.update_karma(self,message.author.id,
                                             (0, 1 if increment else -1))
 
     # Check if the message obtained enough karma to get forwarded to another channel
@@ -172,8 +175,8 @@ class DasMooi(commands.Cog):
             if emoji.name == self.KarmaEmotes.POSITIVE.value \
                     or emoji.name == self.KarmaEmotes.NEGATIVE.value:
                 positive: bool = emoji.name == self.KarmaEmotes.POSITIVE.value
-                if not await database.is_forwarded(message.id, positive):
-                    await database.add_forwarded_message(message.id, positive)
+                if not await database.is_forwarded(self, message.id, positive):
+                    await database.add_forwarded_message(self, message.id, positive)
                     channel = self.bot.get_channel(
                         database.settings.get_das_mooi_channel()) \
                         if positive \

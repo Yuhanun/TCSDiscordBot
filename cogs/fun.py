@@ -1,4 +1,6 @@
 import random
+import requests
+import time
 
 import discord
 from discord.ext import commands
@@ -51,6 +53,46 @@ class Fun(commands.Cog):
         if "this is so sad" not in message.content.lower():
             return
         await message.channel.send("Alexa, play Despacito")
+
+    @commands.command(name="vb")
+    async def vb(self, ctx):
+        """
+        Check if VB is open and, if it is, send a screenshot of the webcam
+        """
+        try:
+            async with ctx.channel.typing():
+                webpage = requests.get("https://www.vestingbar.nl/en/")
+                webpage = webpage.content.decode('utf-8')
+        except ConnectionError:
+            msg = "Cannot reach vestingbar.nl, is it down?"
+            open = False
+
+        if 'gfx/SignOpen.png' in webpage:
+            msg = "Vestingbar seems to be open"
+            open = True
+        elif 'gfx/SignClosed.png' in webpage:
+            msg = "Vestingbar seems to be closed"
+            open = False
+        else:
+            msg = "Can't determine if vestingbar is open, did they change their webpage?"
+            open = False
+
+        if open:
+            colour = discord.colour.Colour.green()
+            img = "https://www.vestingbar.nl/webcam-images/image.jpg?"+str(time.time())
+        else:
+            colour = discord.colour.Colour.red()
+            img = ''
+
+
+        embed: discord.Embed = discord.Embed(title="Is VB open?",
+                                             description=msg,
+                                             url='https://www.vestingbar.nl/en/',
+                                             colour=colour)
+        embed.set_image(url=img)
+        
+
+        await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Fun(bot))

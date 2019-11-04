@@ -1,6 +1,11 @@
 import aiohttp
+import aiosqlite
+import asyncio
+
 import discord
 from discord.ext import commands
+
+from backend.config import DATABASE_LOCATION
 
 if __name__ == "__main__":
     with open("token.txt") as file:
@@ -17,7 +22,11 @@ async def on_ready():
     print('------')
     print(discord.utils.oauth_url(bot.user.id))
 
+async def connect_db():
+    bot._db = await aiosqlite.connect(DATABASE_LOCATION)
+
 if __name__ == "__main__":
+    bot.loop.run_until_complete(connect_db())
     extensions = [
         "cogs.rolehelper",
         "cogs.moderation",
