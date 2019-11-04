@@ -37,20 +37,23 @@ class DasMooi(commands.Cog):
     # The dasmooi settings command to update the threshold
     @on_update_das_mooi_settings.command(name='threshold')
     async def on_update_das_mooi_threshold(self, ctx, threshold: int):
-        await database.settings.set_das_mooi_threshold(self,threshold)
+        connection = self.bot._db
+        await database.settings.set_das_mooi_threshold(connection,threshold)
         await ctx.send(f'Updated the das mooi threshold to: {threshold}.')
 
     # The dasmooi settings command to update the positive forward channel to the current channel
     @on_update_das_mooi_settings.command(name='positivechannel')
     async def on_update_das_mooi_channel(self, ctx):
-        await database.settings.set_das_mooi_channel(self,ctx.channel.id)
+        connection = self.bot._db
+        await database.settings.set_das_mooi_channel(connection,ctx.channel.id)
         await ctx.send(f'All positive messages which pass the das mooi threshold,'
                        f' will be redirected to this channel')
 
     # The dasmooi settings command to update the negative forward channel to the current channel
     @on_update_das_mooi_settings.command(name='negativechannel')
     async def on_update_das_niet_mooi_channel(self, ctx):
-        await database.settings.set_das_niet_mooi_channel(self,ctx.channel.id)
+        connection = self.bot._db
+        await database.settings.set_das_niet_mooi_channel(connection,ctx.channel.id)
         await ctx.send(f'All negative messages which pass the das mooi threshold,'
                        f' will be redirected to this channel')
 

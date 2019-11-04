@@ -31,17 +31,17 @@ class Settings:
     def get_das_niet_mooi_channel(self) -> int:
         return self._das_niet_mooi_channel
 
-    async def set_das_mooi_threshold(self, das_mooi_threshold: int) -> None:
+    async def set_das_mooi_threshold(self, connection, das_mooi_threshold: int) -> None:
         self._das_mooi_threshold = das_mooi_threshold
-        await _update_settings(self)
+        await _update_settings(connection)
 
-    async def set_das_mooi_channel(self, das_mooi_channel: int) -> None:
+    async def set_das_mooi_channel(self, connection, das_mooi_channel: int) -> None:
         self._das_mooi_channel = das_mooi_channel
-        await _update_settings(self)
+        await _update_settings(connection)
 
-    async def set_das_niet_mooi_channel(self, das_niet_mooi_channel: int) -> None:
+    async def set_das_niet_mooi_channel(self, connection, das_niet_mooi_channel: int) -> None:
         self._das_niet_mooi_channel = das_niet_mooi_channel
-        await _update_settings(self)
+        await _update_settings(connection)
 
 
 # Create the default structure
@@ -111,8 +111,7 @@ def create_tables() -> Settings:
 
 
 # Update the settings in the database
-async def _update_settings(self) -> None:
-  connection = self.bot._db
+async def _update_settings(connection) -> None:
   await connection.execute("UPDATE setting SET "
                            "das_mooi_threshold=?, "
                            "das_mooi_channel=?, "
