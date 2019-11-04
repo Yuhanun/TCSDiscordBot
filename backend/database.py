@@ -2,8 +2,6 @@ import sqlite3
 import aiosqlite
 import inspect
 
-# print(self.bot._db)
-
 from backend.config import DATABASE_LOCATION
 
 

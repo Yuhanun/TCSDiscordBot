@@ -66,7 +66,7 @@ class Laf(commands.Cog):
 
     # Send a current status for the player that requested it in the following format:
     # {mention} - Your were called laf {score}x
-    @commands.command(name='hoelafbenik', aliases=['howlafami',','])
+    @commands.command(name='hoelafbenik', aliases=['howlafami'])
     async def on_karma_self_request(self, ctx: Context):
         """
         Show how laf you are
