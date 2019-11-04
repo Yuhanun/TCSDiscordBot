@@ -26,10 +26,10 @@ class Laf(commands.Cog):
         # im sorry about the try catch block
         try:
             ctx = await bot.get_context(message)
+            if ctx.valid:
+                return
         except NameError:
-            pass  
-        if ctx.valid:
-            return
+            pass
         
         for mention in message.mentions:
             await database.update_laf(self,mention.id, 1)
