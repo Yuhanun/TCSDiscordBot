@@ -5,7 +5,7 @@ import asyncio
 import discord
 from discord.ext import commands
 
-from backend.config import DATABASE_LOCATION
+DATABASE_LOCATION = 'tcs_bot.db'
 
 if __name__ == "__main__":
     with open("token.txt") as file:
