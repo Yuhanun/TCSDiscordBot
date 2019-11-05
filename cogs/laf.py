@@ -43,7 +43,7 @@ class Laf(commands.Cog):
         Show the most laf users
         """
         message = self.order_leaderboard(await database.get_top_laf(self,10))
-        await ctx.send(message if message else 'Nobody is mooi')
+        await ctx.send(message if message else "Why don't you guys call someone laf? @P1mguin, for example")
 
     # Send the negative leaderboards:
     @commands.command(name='wiezijnhetminstlaf',
