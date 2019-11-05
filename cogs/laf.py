@@ -20,17 +20,10 @@ class Laf(commands.Cog):
             return
         if not message.mentions:
             return
+        prefix = await self.bot.get_prefix(message)
+        if message.content.startswith( prefix ):
+        	return
 
-        # checks if the message is a valid command
-        # otherwise .hoelafis @user would also increase the count
-        # im sorry about the try catch block
-        try:
-            ctx = await bot.get_context(message)
-            if ctx.valid:
-                return
-        except NameError:
-            pass
-        
         for mention in message.mentions:
             await database.update_laf(self,mention.id, 1)
 
