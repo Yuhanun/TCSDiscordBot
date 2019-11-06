@@ -20,17 +20,10 @@ class Laf(commands.Cog):
             return
         if not message.mentions:
             return
+        prefix = await self.bot.get_prefix(message)
+        if message.content.startswith( prefix ):
+        	return
 
-        # checks if the message is a valid command
-        # otherwise .hoelafis @user would also increase the count
-        # im sorry about the try catch block
-        try:
-            ctx = await bot.get_context(message)
-            if ctx.valid:
-                return
-        except NameError:
-            pass
-        
         for mention in message.mentions:
             await database.update_laf(self,mention.id, 1)
 
@@ -43,7 +36,7 @@ class Laf(commands.Cog):
         Show the most laf users
         """
         message = self.order_leaderboard(await database.get_top_laf(self,10))
-        await ctx.send(message if message else 'Nobody is mooi')
+        await ctx.send(message if message else "Why don't you guys call someone laf? @P1mguin, for example")
 
     # Send the negative leaderboards:
     @commands.command(name='wiezijnhetminstlaf',
