@@ -98,12 +98,20 @@ class Fun(commands.Cog):
         Show a user's discord profile picture/avatar
         """
         member = ctx.guild.get_member(user.id)
-        
+
         embed: discord.Embed = discord.Embed(title=user.name+"'s avatar:",
                                              colour=member.colour)
         embed.set_image(url=user.avatar_url)
         embed.set_author(name=user.display_name, icon_url=user.avatar_url)
         await ctx.send(embed=embed)
+    @avatar.error
+    async def avatar_error(self, ctx, error):
+        if isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send("Please specify a user")
+            raise error
+        elif isinstance(error, commands.BadArgument):
+            await ctx.send('User not found')
+            raise error
 
 def setup(bot):
     bot.add_cog(Fun(bot))
