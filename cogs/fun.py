@@ -54,6 +54,21 @@ class Fun(commands.Cog):
             return
         await message.channel.send("Alexa, play Despacito")
 
+    # Replies "WHO DID THIS" together with laughing crying emoji's to messages that contain "lmao"
+    @commands.Cog.listener()
+    async def on_message(self, message: discord.Message):
+        if not self.enabled:
+            return
+        if message.author.bot:
+            return
+        if "lmao" not in message.content.lower():
+            return
+        response = ("<:lol:646089960792916018>""<:lol:646089960792916018>""<:lol:646089960792916018>"
+                    "WHO DID THIS"
+                    "<:lol:646089960792916018>""<:lol:646089960792916018>""<:lol:646089960792916018>")
+
+        await message.channel.send(response)
+
     @commands.command(name="vb")
     async def vb(self, ctx):
         """
