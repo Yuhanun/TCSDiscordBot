@@ -6,30 +6,18 @@ import discord
 from discord.ext import commands
 
 async def on_message_tutkegel(self, message: discord.Message):
-    if not self.enabled:
-        return
-    if message.author.bot:
-        return
     if not random.randint(0, 100) == 50:
         return
     await message.add_reaction("<:tutkegel:620927895132569601>")
 
 # Replies "Alexa, play Despacito" to messages containing "this is so sad"
 async def on_message_alexa(self, message: discord.Message):
-    if not self.enabled:
-        return
-    if message.author.bot:
-        return
     if "this is so sad" not in message.content.lower():
         return
     await message.channel.send("Alexa, play Despacito")
 
 # Replies "WHO DID THIS" together with laughing crying emoji's to messages that contain "lmao"
 async def on_message_lmao(self, message: discord.Message):
-    if not self.enabled:
-        return
-    if message.author.bot:
-        return
     if "lmao" not in message.content.lower():
         return
     response = ("<:lol:646089960792916018>""<:lol:646089960792916018>""<:lol:646089960792916018>"
@@ -52,6 +40,10 @@ class Fun(commands.Cog):
     # Message listeners
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
+        if not self.enabled:
+            return
+        if message.author.bot:
+            return
         await on_message_tutkegel(self, message)
         await on_message_alexa(self, message)
         await on_message_lmao(self, message)
