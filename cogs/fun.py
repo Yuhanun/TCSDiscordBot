@@ -5,25 +5,48 @@ import time
 import discord
 from discord.ext import commands
 
+async def on_message_tutkegel(self, message: discord.Message):
+    if not random.randint(0, 100) == 50:
+        return
+    await message.add_reaction("<:tutkegel:620927895132569601>")
+
+# Replies "Alexa, play Despacito" to messages containing "this is so sad"
+async def on_message_alexa(self, message: discord.Message):
+    if "this is so sad" not in message.content.lower():
+        return
+    await message.channel.send("Alexa, play Despacito")
+
+# Replies "WHO DID THIS" together with laughing crying emoji's to messages that contain "lmao"
+async def on_message_lmao(self, message: discord.Message):
+    if "lmao" not in message.content.lower():
+        return
+    response = ("<:lol:646089960792916018>""<:lol:646089960792916018>""<:lol:646089960792916018>"
+                "WHO DID THIS"
+                "<:lol:646089960792916018>""<:lol:646089960792916018>""<:lol:646089960792916018>")
+
+    await message.channel.send(response)
+
+
 class Fun(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.enabled = True
         self.bot = bot
 
+    @commands.command(hidden=True)
+    async def toggle(self, ctx):
+        self.enabled = not self.enabled
+        await ctx.send(f"Set enabled to: {self.enabled}")
+
+    # Message listeners
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         if not self.enabled:
             return
         if message.author.bot:
             return
-        if not random.randint(0, 100) == 50:
-            return
-        await message.add_reaction("<:tutkegel:620927895132569601>")
-
-    @commands.command(hidden=True)
-    async def toggle(self, ctx):
-        self.enabled = not self.enabled
-        await ctx.send(f"Set enabled to: {self.enabled}")
+        await on_message_tutkegel(self, message)
+        await on_message_alexa(self, message)
+        await on_message_lmao(self, message)
 
     # Send 3x3 emote grid with tutkegel.
     # Emotes are from Davvos11's test discord,
@@ -42,32 +65,6 @@ class Fun(commands.Cog):
                        "\n<:tegel3:634119528825094164>"
                        "<:tegel2:634119528330035200>"
                        "<:tegel1:634119528439218206>")
-
-    # Replies "Alexa, play Despacito" to messages containing "this is so sad"
-    @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
-        if not self.enabled:
-            return
-        if message.author.bot:
-            return
-        if "this is so sad" not in message.content.lower():
-            return
-        await message.channel.send("Alexa, play Despacito")
-
-    # Replies "WHO DID THIS" together with laughing crying emoji's to messages that contain "lmao"
-    @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
-        if not self.enabled:
-            return
-        if message.author.bot:
-            return
-        if "lmao" not in message.content.lower():
-            return
-        response = ("<:lol:646089960792916018>""<:lol:646089960792916018>""<:lol:646089960792916018>"
-                    "WHO DID THIS"
-                    "<:lol:646089960792916018>""<:lol:646089960792916018>""<:lol:646089960792916018>")
-
-        await message.channel.send(response)
 
     @commands.command(name="vb")
     async def vb(self, ctx):
