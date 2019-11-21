@@ -1,5 +1,5 @@
 import random
-import requests
+import aiohttp
 import time
 
 import discord
@@ -71,13 +71,19 @@ class Fun(commands.Cog):
         """
         try:
             async with ctx.channel.typing():
-                webpage = requests.get("https://www.vestingbar.nl/en/")
-                webpage = webpage.content.decode('utf-8')
-        except ConnectionError:
+                session = self.bot._session
+                async with session.get("https://www.vestingbar.nl/en/") as resp:
+                    webpage = await resp.text()
+        except aiohttp.ClientConnectorError:
             msg = "Cannot reach vestingbar.nl, is it down?"
             open = False
+            down = True
+        finally:
+            down = False
 
-        if 'gfx/SignOpen.png' in webpage:
+        if down == True:
+            pass
+        elif 'gfx/SignOpen.png' in webpage:
             msg = "Vestingbar seems to be open"
             open = True
         elif 'gfx/SignClosed.png' in webpage:
