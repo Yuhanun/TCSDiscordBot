@@ -71,9 +71,9 @@ class Fun(commands.Cog):
         """
         try:
             async with ctx.channel.typing():
-                async with aiohttp.ClientSession() as session:
-                    async with session.get("https://www.vestingbar.nl/en/") as resp:
-                        webpage = await resp.text()
+                session = self.bot._session
+                async with session.get("https://www.vestingbar.nl/en/") as resp:
+                    webpage = await resp.text()
         except ConnectionError:
             msg = "Cannot reach vestingbar.nl, is it down?"
             open = False
