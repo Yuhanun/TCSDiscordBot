@@ -74,11 +74,16 @@ class Fun(commands.Cog):
                 session = self.bot._session
                 async with session.get("https://www.vestingbar.nl/en/") as resp:
                     webpage = await resp.text()
-        except ConnectionError:
+        except aiohttp.ClientConnectorError:
             msg = "Cannot reach vestingbar.nl, is it down?"
             open = False
+            down = True
+        finally:
+            down = False
 
-        if 'gfx/SignOpen.png' in webpage:
+        if down == True:
+            pass
+        elif 'gfx/SignOpen.png' in webpage:
             msg = "Vestingbar seems to be open"
             open = True
         elif 'gfx/SignClosed.png' in webpage:
