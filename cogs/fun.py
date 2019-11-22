@@ -24,6 +24,18 @@ async def on_message_lmao(self, message: discord.Message):
 
         await message.channel.send(response)
 
+# Replies with a doubt picture when the message contains X.
+async def on_message_xtodoubt(self, message: discord.Message):
+    if "X" != message.content.upper():
+        return
+    img = "https://i1.kym-cdn.com/entries/icons/original/000/023/021/e02e5ffb5f980cd8262cf7f0ae00a4a9_press-x-to-doubt-memes-memesuper-la-noire-doubt-meme_419-238.png"
+    colour = discord.colour.Colour.red()
+    embed: discord.Embed = discord.Embed(colour=colour)
+    embed.set_image(url=img)
+    await message.channel.send(embed=embed)
+
+
+
 
 class Fun(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -45,6 +57,7 @@ class Fun(commands.Cog):
         await on_message_tutkegel(self, message)
         await on_message_alexa(self, message)
         await on_message_lmao(self, message)
+        await on_message_xtodoubt(self, message)
 
     # Send 3x3 emote grid with tutkegel.
     # Emotes are from John's tutkegel discord,
