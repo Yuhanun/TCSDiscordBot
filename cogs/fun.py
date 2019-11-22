@@ -146,19 +146,24 @@ class Fun(commands.Cog):
         """
         Mock a user's last sent message
         """
-        channel = ctx.message.channel
-        msg = await channel.history().get(author=user)
-        
-        if msg == None:
-            await ctx.send("User didn't send messages in this channel recently")
-            return
-        elif msg.content == "":
-            await ctx.send("Last message of user didn't contain any text")
-            return
-        
+        author: discord.User = ctx.author
+        if author == user:
+            text = "I am mocking myself because I'm retarded"
+        else:
+            channel = ctx.message.channel
+            msg = await channel.history().get(author=user)
+
+            if msg == None:
+                await ctx.send("User didn't send messages in this channel recently")
+                return
+            elif msg.content == "":
+                await ctx.send("Last message of user didn't contain any text")
+                return
+            text = msg.content.lower()
+
         member = ctx.guild.get_member(user.id)
 
-        embed: discord.Embed = discord.Embed(description=mock(msg.content.lower()),
+        embed: discord.Embed = discord.Embed(description=mock(text),
                                              colour=member.colour )
         embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/303962809627181057/647404768599343116/C_jmdLmVoAAceZV.jpg')
         embed.set_author(name=user.display_name, icon_url=user.avatar_url)
