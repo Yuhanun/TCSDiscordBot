@@ -5,26 +5,24 @@ import time
 import discord
 from discord.ext import commands
 
+# Reacts with tutkegel emote on random messages
 async def on_message_tutkegel(self, message: discord.Message):
-    if not random.randint(0, 100) == 50:
-        return
-    await message.add_reaction("<:tutkegel:620927895132569601>")
+    if not random.randint(0, 100):
+        await message.add_reaction("<:tutkegel:620927895132569601>")
 
 # Replies "Alexa, play Despacito" to messages containing "this is so sad"
 async def on_message_alexa(self, message: discord.Message):
-    if "this is so sad" not in message.content.lower():
-        return
-    await message.channel.send("Alexa, play Despacito")
+    if "this is so sad" in message.content.lower():
+        await message.channel.send("Alexa, play Despacito")
 
-# Replies "WHO DID THIS" together with laughing crying emoji's to messages that contain "lmao"
+# Replies "WHO DID THIS" together with laughing crying emoji's to random messages that contain "lmao"
 async def on_message_lmao(self, message: discord.Message):
-    if "lmao" not in message.content.lower():
-        return
-    response = ("<:lol:646089960792916018>""<:lol:646089960792916018>""<:lol:646089960792916018>"
+    if "lmao" in message.content.lower() and not random.randint(0,10):
+        response = ("<:lol:646089960792916018>""<:lol:646089960792916018>""<:lol:646089960792916018>"
                 "WHO DID THIS"
                 "<:lol:646089960792916018>""<:lol:646089960792916018>""<:lol:646089960792916018>")
 
-    await message.channel.send(response)
+        await message.channel.send(response)
 
 
 class Fun(commands.Cog):
