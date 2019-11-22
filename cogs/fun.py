@@ -1,6 +1,7 @@
 import random
 import aiohttp
 import time
+from backend.spongemock import mock
 
 import discord
 from discord.ext import commands
@@ -139,6 +140,30 @@ class Fun(commands.Cog):
         elif isinstance(error, commands.BadArgument):
             await ctx.send('User not found')
             raise error
+
+    @commands.command(name="mock")
+    async def mock(self, ctx, user: discord.User):
+        """
+        Mock a user's last sent message
+        """
+        channel = ctx.message.channel
+        msg = await channel.history().get(author=user)
+        
+        if msg == None:
+            await ctx.send("User didn't send messages in this channel recently")
+            return
+        elif msg.content == "":
+            await ctx.send("Last message of user didn't contain any text")
+            return
+        
+        member = ctx.guild.get_member(user.id)
+
+        embed: discord.Embed = discord.Embed(description=mock(msg.content.lower()),
+                                             colour=member.colour )
+        embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/303962809627181057/647404768599343116/C_jmdLmVoAAceZV.jpg')
+        embed.set_author(name=user.display_name, icon_url=user.avatar_url)
+
+        await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Fun(bot))
