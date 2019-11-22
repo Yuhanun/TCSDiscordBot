@@ -4,11 +4,12 @@ from discord.ext.commands import Context
 
 from backend import database
 
+
 class Laf(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.enabled = True
         self.bot = bot
-    
+
     # Increments the laf_counter if someone gets called laf
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -21,22 +22,23 @@ class Laf(commands.Cog):
         if not message.mentions:
             return
         prefix = await self.bot.get_prefix(message)
-        if message.content.startswith( prefix ):
-        	return
+        if message.content.startswith(prefix):
+            return
 
         for mention in message.mentions:
-            await database.update_laf(self,mention.id, 1)
+            await database.update_laf(self, mention.id, 1)
 
     # Send the leaderboards:
     @commands.command(name='wiezijnhetlafst',
                       aliases=['whoarehetlafst', 'laffebende',
-                               'wieishetlafst', 'laffehomos' , 'kleinespelers'])
+                               'wieishetlafst', 'laffehomos', 'kleinespelers'])
     async def on_karma_leaderboard_request(self, ctx: Context):
         """
         Show the most laf users
         """
-        message = self.order_leaderboard(await database.get_top_laf(self,10))
-        await ctx.send(message if message else "Why don't you guys call someone laf? @P1mguin, for example")
+        message = self.order_leaderboard(await database.get_top_laf(self, 10))
+        await ctx.send(
+            message if message else "Why don't you guys call someone laf? @P1mguin, for example")
 
     # Send the negative leaderboards:
     @commands.command(name='wiezijnhetminstlaf',
@@ -46,9 +48,9 @@ class Laf(commands.Cog):
         """
         Show the least laf users
         """
-        message = self.order_leaderboard(await database.get_reversed_top_laf(self,10))
-        await ctx.send(message if message else "Why don't you guys call someone laf? @P1mguin, for example")
-
+        message = self.order_leaderboard(await database.get_reversed_top_laf(self, 10))
+        await ctx.send(
+            message if message else "Why don't you guys call someone laf? @P1mguin, for example")
 
     # Returns a string in the following format:
     # {ranking}. {name} got called laf {score}x
@@ -65,7 +67,7 @@ class Laf(commands.Cog):
         Show how laf you are
         """
         author: discord.User = ctx.author
-        response: (int, int) = await database.get_laf(self,author.id)
+        response: (int, int) = await database.get_laf(self, author.id)
         await ctx.send(
             f'{author.mention} - Your were called laf {response}x ')
 
@@ -76,9 +78,10 @@ class Laf(commands.Cog):
         """
         Show how laf someone is
         """
-        response: (int, int) = await database.get_laf(self,user.id)
+        response: (int, int) = await database.get_laf(self, user.id)
         await ctx.send(
             f'{user.name} has been called laf {response}x ')
+
 
 def setup(bot):
     bot.add_cog(Laf(bot))
