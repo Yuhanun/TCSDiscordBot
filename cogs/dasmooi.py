@@ -6,8 +6,9 @@ from discord import File
 from discord.ext import commands
 from discord.ext.commands import Context
 
-from backend import database 
+from backend import database
 from backend import main_guild
+
 
 # If the .dasmooi commands don't work, change main_guild in backend/main_guild.py
 def is_in_guild(guild_id):
@@ -15,6 +16,7 @@ def is_in_guild(guild_id):
         return ctx.guild and ctx.guild.id == guild_id
 
     return commands.check(predicate)
+
 
 class DasMooi(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -38,14 +40,14 @@ class DasMooi(commands.Cog):
     @on_update_das_mooi_settings.command(name='threshold')
     async def on_update_das_mooi_threshold(self, ctx, threshold: int):
         connection = self.bot._db
-        await database.settings.set_das_mooi_threshold(connection,threshold)
+        await database.settings.set_das_mooi_threshold(connection, threshold)
         await ctx.send(f'Updated the das mooi threshold to: {threshold}.')
 
     # The dasmooi settings command to update the positive forward channel to the current channel
     @on_update_das_mooi_settings.command(name='positivechannel')
     async def on_update_das_mooi_channel(self, ctx):
         connection = self.bot._db
-        await database.settings.set_das_mooi_channel(connection,ctx.channel.id)
+        await database.settings.set_das_mooi_channel(connection, ctx.channel.id)
         await ctx.send(f'All positive messages which pass the das mooi threshold,'
                        f' will be redirected to this channel')
 
@@ -53,10 +55,9 @@ class DasMooi(commands.Cog):
     @on_update_das_mooi_settings.command(name='negativechannel')
     async def on_update_das_niet_mooi_channel(self, ctx):
         connection = self.bot._db
-        await database.settings.set_das_niet_mooi_channel(connection,ctx.channel.id)
+        await database.settings.set_das_niet_mooi_channel(connection, ctx.channel.id)
         await ctx.send(f'All negative messages which pass the das mooi threshold,'
                        f' will be redirected to this channel')
-
 
     ##############################################################################
     # Leaderboards and scores:
@@ -71,7 +72,7 @@ class DasMooi(commands.Cog):
         """
         Show the dasmooi-karma leaderboard
         """
-        message = self.order_leaderboard(await database.get_top_karma(self,10))
+        message = self.order_leaderboard(await database.get_top_karma(self, 10))
         await ctx.send(message if message else 'Nobody is mooi')
 
     # Send the negative leaderboards in the following format:
@@ -83,9 +84,8 @@ class DasMooi(commands.Cog):
         """
         Show the negative dasmooi-karma leaderboard
         """
-        message = self.order_leaderboard(await database.get_reversed_top_karma(self,10))
+        message = self.order_leaderboard(await database.get_reversed_top_karma(self, 10))
         await ctx.send(message if message else "Why don't you guys hate someone?")
-
 
     # Returns a string in the following format:
     # {ranking}. {name} - {score} ({positives} Positives and {negatives} Negatives)
@@ -103,7 +103,7 @@ class DasMooi(commands.Cog):
         Show how much dasmooi-karma you have
         """
         author: discord.User = ctx.author
-        response: (int, int) = await database.get_karma(self,author.id)
+        response: (int, int) = await database.get_karma(self, author.id)
         await ctx.send(
             f'{author.mention} - Your current score is: **{response[0] - response[1]}** '
             f'*({response[0]} Positives and {response[1]} Negatives)*')
@@ -115,7 +115,7 @@ class DasMooi(commands.Cog):
         """
         Show how much dasmooi-karma someone has
         """
-        response: (int, int) = await database.get_karma(self,user.id)
+        response: (int, int) = await database.get_karma(self, user.id)
         await ctx.send(
             f'{user.name}\'s current score is: **{response[0] - response[1]}** '
             f'*({response[0]} Positives and {response[1]} Negatives)*')
@@ -157,21 +157,22 @@ class DasMooi(commands.Cog):
                 and not discord.utils.get(member.roles, name='Tegel'):
             if emoji.name == self.KarmaEmotes.POSITIVE.value:
                 # Update the positive karma
-                await database.update_karma(self,message.author.id,
+                await database.update_karma(self, message.author.id,
                                             (1 if increment else -1, 0))
             elif emoji.name == self.KarmaEmotes.NEGATIVE.value:
                 # Update the negative karma
-                await database.update_karma(self,message.author.id,
+                await database.update_karma(self, message.author.id,
                                             (0, 1 if increment else -1))
 
     # Check if the message obtained enough karma to get forwarded to another channel
     async def forward_message_check(self, emoji: discord.emoji.PartialEmoji,
                                     message: discord.Message):
-        count: int = [reaction.count for reaction in message.reactions
-                      if type(reaction.emoji) == discord.emoji.Emoji
-                      and reaction.emoji.name == emoji.name][0]
+        emotes = [reaction.count for reaction in message.reactions
+                  if type(reaction.emoji) == discord.emoji.Emoji
+                  and reaction.emoji.name == emoji.name]
         if self.enabled and not message.author.bot \
-                and count >= database.settings.get_das_mooi_threshold():
+                and len(emotes) >= 1 \
+                and emotes[0] >= database.settings.get_das_mooi_threshold():
             if emoji.name == self.KarmaEmotes.POSITIVE.value \
                     or emoji.name == self.KarmaEmotes.NEGATIVE.value:
                 positive: bool = emoji.name == self.KarmaEmotes.POSITIVE.value
@@ -211,6 +212,7 @@ class DasMooi(commands.Cog):
                                  for attachment in message.attachments
                                  if not attachment.is_spoiler()]:
                             await channel.send(file=file)
+
 
 def setup(bot):
     bot.add_cog(DasMooi(bot))
