@@ -178,8 +178,8 @@ class Fun(commands.Cog):
         res2 = '\n'
         for char in text:
             if char.isalpha():
-                res = res+':regional_indicator_'+char+':'
-                res2 = res2+':regional_indicator_'+char+':'+'\n'
+                res = res+':regional_indicator_'+char.lower()+':'
+                res2 = res2+':regional_indicator_'+char.lower()+':'+'\n'
             elif char.isnumeric():
                 res = res+':'+num2words(char)+':'
                 res2 = res2+':'+num2words(char)+':'+'\n'
