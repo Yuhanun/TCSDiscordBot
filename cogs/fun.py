@@ -176,10 +176,14 @@ class Fun(commands.Cog):
         text = ''.join(text[i]+' ' for i in range(0, len(text)))
         res = ''
         res2 = '\n'
+        line1 = True
         for char in text:
             if char.isalpha():
                 res = res+':regional_indicator_'+char.lower()+':'
-                res2 = res2+':regional_indicator_'+char.lower()+':'+'\n'
+                if not line1:
+                    res2 = res2+':regional_indicator_'+char.lower()+':'+'\n'
+                else:
+                    line1 = False
             elif char.isnumeric():
                 res = res+':'+num2words(char)+':'
                 res2 = res2+':'+num2words(char)+':'+'\n'
