@@ -33,7 +33,8 @@ if __name__ == "__main__":
         "cogs.fun",
         "cogs.rtfm",
         "cogs.dasmooi",
-        "cogs.laf"
+        "cogs.laf",
+        "cogs.admin"
     ]
     [bot.load_extension(ext) for ext in extensions]
     bot.run(TOKEN)
