@@ -2,6 +2,7 @@ import random
 import aiohttp
 import time
 from backend.spongemock import mock
+from num2words import num2words
 
 import discord
 from discord.ext import commands
@@ -169,6 +170,30 @@ class Fun(commands.Cog):
         embed.set_author(name=user.display_name, icon_url=user.avatar_url)
 
         await ctx.send(embed=embed)
+
+    @commands.command(name="big")
+    async def big(self, ctx, *text):
+        text = ''.join(text[i]+' ' for i in range(0, len(text)))
+        res = ''
+        res2 = '\n'
+        line1 = True
+        for char in text:
+            if char.isalpha():
+                res = res+':regional_indicator_'+char.lower()+':'
+                if not line1:
+                    res2 = res2+':regional_indicator_'+char.lower()+':'+'\n'
+                else:
+                    line1 = False
+            elif char.isnumeric():
+                res = res+':'+num2words(char)+':'
+                res2 = res2+':'+num2words(char)+':'+'\n'
+            elif char == ' ':
+                res = res+'   '
+                res2 = res2+'\n'
+            else:
+                res = res+char
+                res2 = res2+char+'\n'
+        await ctx.send(res+res2)
 
 def setup(bot):
     bot.add_cog(Fun(bot))
