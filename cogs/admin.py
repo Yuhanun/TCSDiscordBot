@@ -75,4 +75,4 @@ class Admin(commands.Cog):
         await ctx.send(f"https://lmgtfy.com/?q={term.replace(' ', '+')}")
 
 def setup(bot):
-    bot.setup_cog(Admin(bot))
+    bot.add_cog(Admin(bot))
