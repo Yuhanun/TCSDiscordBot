@@ -15,6 +15,7 @@ from contextlib import redirect_stdout
 class Admin(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self._last_result = None
         
     @commands.command(hidden=True, name='eval')
     async def _eval(self, ctx, *, body: str):
