@@ -1,5 +1,6 @@
 import random
 import aiohttp
+import bs4
 import time
 from backend.spongemock import mock
 from num2words import num2words
@@ -194,6 +195,26 @@ class Fun(commands.Cog):
                 res = res+char
                 res2 = res2+char+'\n'
         await ctx.send(res+res2)
+
+
+    @commands.command(name="meme")
+    async def meme(self,ctx):
+        """
+        Send a random meme, might take some time for the server to start
+        """
+        try:
+            async with ctx.channel.typing():
+                session = self.bot._session
+                async with session.get("https://nierot-memebot.herokuapp.com/") as resp:
+                    soup = bs4.BeautifulSoup(await resp.read(), "lxml")
+                    src = soup.find("img").get('src')
+                    msg = ""
+        except aiohttp.ClientConnectorError:
+            msg = "Server is probably starting, if it doesnt work in a minute just yell 'pls fix'"
+        embed: discord.Embed = discord.Embed(msg=msg,colour=0x00ffff)
+        embed.set_image(url=src)
+        await ctx.send(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(Fun(bot))
