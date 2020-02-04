@@ -195,5 +195,27 @@ class Fun(commands.Cog):
                 res2 = res2+char+'\n'
         await ctx.send(res+res2)
 
+
+    @commands.command(name="meme")
+    async def meme(self,ctx,args):
+        """
+        Send a random meme, might take some time for the server to start, takes an argument for the subreddit
+        """
+        url = 'https://www.reddit.com/r/' + args + '.json?&limit=100'
+        try:
+            async with ctx.channel.typing():
+                session = self.bot._session
+                async with session.get(url,headers={'User-agent': 'oofyeet '}) as resp:
+                    data = await resp.json()
+        except aiohttp.ClientConnectorError:
+            msg = "no memes for you"
+        msg = ""
+        memes = data['data']['children']
+        meme = memes[random.randint(0,99)]['data']['url']
+        embed: discord.Embed = discord.Embed(msg=msg,colour=0x00ffff)
+        embed.set_image(url=meme)
+        await ctx.send(embed=embed)
+
+
 def setup(bot):
     bot.add_cog(Fun(bot))

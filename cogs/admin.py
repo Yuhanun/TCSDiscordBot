@@ -15,7 +15,17 @@ from contextlib import redirect_stdout
 class Admin(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self._last_result = None
         
+    def cleanup_code(self, content):
+        """Automatically removes code blocks from the code."""
+        # remove ```py\n```
+        if content.startswith('```') and content.endswith('```'):
+            return '\n'.join(content.split('\n')[1:-1])
+
+        # remove `foo`
+        return content.strip('` \n')
+
     @commands.command(hidden=True, name='eval')
     async def _eval(self, ctx, *, body: str):
         """Evaluates code"""
@@ -75,4 +85,4 @@ class Admin(commands.Cog):
         await ctx.send(f"https://lmgtfy.com/?q={term.replace(' ', '+')}")
 
 def setup(bot):
-    bot.setup_cog(Admin(bot))
+    bot.add_cog(Admin(bot))
