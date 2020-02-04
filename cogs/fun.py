@@ -231,7 +231,7 @@ class Fun(commands.Cog):
                 memeType = 'text'
 
             if memeType == 'image':
-                embed: discord.Embed = discord.Embed(msg=msg,colour=0x00ffff,title=memeTitle,url=memeRedditUrl)
+                embed: discord.Embed = discord.Embed(colour=0x00ffff,title=memeTitle,url=memeRedditUrl)
                 embed.set_image(url=memeURL)
             elif memeType == 'text':
                 url = memeRedditUrl+'.json'
@@ -247,10 +247,9 @@ class Fun(commands.Cog):
                         memeText = memeText[0:1020]+"..."
                 except aiohttp.ClientConnectorError:
                     memeText = ""
-                embed: discord.Embed = discord.Embed(msg=msg,colour=0x00ffff,url=memeRedditUrl,title=memeTitle)
-                embed.add_field(value=memeText,name="Text")
+                embed: discord.Embed = discord.Embed(description=memeText,colour=0x00ffff,url=memeRedditUrl,title=memeTitle)
             else:
-                embed: discord.Embed = discord.Embed(msg=msg,colour=0x00ffff,url=memeRedditUrl,title=memeTitle)
+                embed: discord.Embed = discord.Embed(colour=0x00ffff,url=memeRedditUrl,title=memeTitle)
                 embed.set_thumbnail(url=memeThumbnail)
             embed.set_author(name="/u/"+memeAuthor, url='https://reddit.com/u/'+memeAuthor)
             await ctx.send(embed=embed)
