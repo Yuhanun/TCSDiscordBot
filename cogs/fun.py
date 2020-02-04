@@ -1,6 +1,8 @@
 import random
 import aiohttp
 import time
+import html
+from pyquery import PyQuery  
 from backend.spongemock import mock
 from num2words import num2words
 
@@ -201,20 +203,57 @@ class Fun(commands.Cog):
         """
         Send a random meme, might take some time for the server to start, takes an argument for the subreddit
         """
-        url = 'https://www.reddit.com/r/' + args + '.json?&limit=100'
-        try:
-            async with ctx.channel.typing():
-                session = self.bot._session
+        async with ctx.channel.typing():
+            session = self.bot._session
+            url = 'https://www.reddit.com/r/' + args + '.json?&limit=100'
+            try:
                 async with session.get(url,headers={'User-agent': 'oofyeet '}) as resp:
                     data = await resp.json()
-        except aiohttp.ClientConnectorError:
-            msg = "no memes for you"
-        msg = ""
-        memes = data['data']['children']
-        meme = memes[random.randint(0,99)]['data']['url']
-        embed: discord.Embed = discord.Embed(msg=msg,colour=0x00ffff)
-        embed.set_image(url=meme)
-        await ctx.send(embed=embed)
+            except aiohttp.ClientConnectorError as e:
+                await ctx.send("Error: "+str(e))
+                return
+            memes = data['data']['children']
+
+            if len(memes) == 0:
+                await ctx.send("/r/"+args+" does not exist")
+                return
+
+            meme = memes[random.randint(0,99)]['data']
+            memeTitle = meme['title']
+            memeURL = meme['url']
+            memeRedditUrl = 'https://reddit.com'+meme['permalink']
+            memeAuthor = meme['author']
+            memeThumbnail = meme['thumbnail']
+
+            if 'post_hint' in meme:
+                memeType = meme['post_hint']
+            else:
+                memeType = 'text'
+
+            if memeType == 'image':
+                embed: discord.Embed = discord.Embed(msg=msg,colour=0x00ffff,title=memeTitle,url=memeRedditUrl)
+                embed.set_image(url=memeURL)
+            elif memeType == 'text':
+                url = memeRedditUrl+'.json'
+                try:
+                    async with session.get(url,headers={'User-agent': 'oofyeet '}) as resp:
+                        data = await resp.json()
+                    memeTextHTML = data[0]['data']['children'][0]['data']['selftext_html']
+                    memeTextHTML = html.unescape(memeTextHTML)
+                    htmlRoot = PyQuery(memeTextHTML)
+                    memeText = htmlRoot('div.md').html()
+                    memeText = memeText.replace("<p>","").replace("</p>","\n")
+                    if len(memeText) >= 1024:
+                        memeText = memeText[0:1020]+"..."
+                except aiohttp.ClientConnectorError:
+                    memeText = ""
+                embed: discord.Embed = discord.Embed(msg=msg,colour=0x00ffff,url=memeRedditUrl,title=memeTitle)
+                embed.add_field(value=memeText,name="Text")
+            else:
+                embed: discord.Embed = discord.Embed(msg=msg,colour=0x00ffff,url=memeRedditUrl,title=memeTitle)
+                embed.set_thumbnail(url=memeThumbnail)
+            embed.set_author(name="/u/"+memeAuthor, url='https://reddit.com/u/'+memeAuthor)
+            await ctx.send(embed=embed)
 
 
 def setup(bot):
