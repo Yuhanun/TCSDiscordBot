@@ -1,6 +1,7 @@
 import aiohttp
 from pyquery import PyQuery
 import re
+import urllib.parse
 
 
 async def get_search(self, args):
@@ -65,6 +66,11 @@ async def get(self, brand):
     except IndexError:
         sale_price = re.search("€.*(?= per )", text.text()).group()
         original_price = " "
+
+    biernet_url = urllib.parse.quote(biernet_url, safe=':/%')
+    image = urllib.parse.quote(image, safe=':/%')
+    shop_url = urllib.parse.quote(shop_url, safe=':/%')
+    shop_image = urllib.parse.quote(shop_image, safe=':/%')
     return {'url': biernet_url, 'name': title.split("|")[0], 'img': image, 'is_on_sale': on_sale,
             'shop_name': shop_name, 'shop_url': shop_url, 'shop_img': shop_image, 'original_price': original_price,
             'sale_price': sale_price}
