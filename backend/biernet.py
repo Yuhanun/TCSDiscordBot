@@ -44,4 +44,5 @@ async def get(self, brand):
     text = cheapest_div('p')
     original_price = text('.van_prijs')[0].text
     sale_price = text('.aanbiedingPrijsPPC')[0].text
-    return [biernet_url, image, shop_name, shop_url, shop_image, original_price, sale_price]
+    return {'url': biernet_url, 'img': image, 'shop_name': shop_name, 'shop_url': shop_url, 'shop_img': shop_image,
+            'original_price': original_price, 'sale_price': sale_price}

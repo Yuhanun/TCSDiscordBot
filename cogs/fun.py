@@ -225,12 +225,12 @@ class Fun(commands.Cog):
                 result = await biernet.get(self, brand)
                 embed: discord.Embed = discord.Embed(
                     title='Cheapest seller of '+args,
-                    url=result[0],
-                    description="Best deal: "+result[2]+"\n" +
-                    "~~"+result[5]+"~~ **"+result[6]+"**")
+                    url=result['url'],
+                    description="Best deal: "+result['shop_name']+"\n" +
+                    "~~"+result['original_price']+"~~ **"+result['sale_price']+"**")
 
-                embed.set_author(name=result[2], url=result[3], icon_url=result[4])
-                embed.set_thumbnail(url=result[1])
+                embed.set_author(name=result['shop_name'], url=result['shop_url'], icon_url=result['shop_img'])
+                embed.set_thumbnail(url=result['img'])
                 embed.set_footer(text='Source: biernet.nl')
                 await ctx.send(embed=embed)
             except aiohttp.ClientConnectorError:
