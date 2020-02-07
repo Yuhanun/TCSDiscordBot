@@ -1,5 +1,6 @@
 import aiohttp
 from pyquery import PyQuery
+import re
 
 
 async def get_search(self, args):
@@ -13,11 +14,11 @@ async def get_search(self, args):
 
 
 async def search(self, search_term):
+    search_term = search_term.replace(" ", "-")
     webpage = await get_search(self, {'zoeken': 'true', 'merk': search_term, 'kratten': 'krat-alle'})
-    root = PyQuery(webpage)
-    url = root('a.merkenUrl').attr('href')
+    url = PyQuery(webpage)('a.merkenUrl').attr('href')
     if url is None:
-        webpage = await get_search(self, {'zoeken': 'true', 'merk': search_term})
+        webpage = await get_search(self, {'zoeken': 'true', 'zoek': search_term, 'kratten': 'krat-alle'})
         url = PyQuery(webpage)('a.merkenUrl').attr('href')
         if url is None:
             webpage = await get_search(self, {'zoeken': 'true', 'merk': search_term})
@@ -43,13 +44,14 @@ async def get(self, brand):
 
     title = root('title').html()
     if title.startswith("Biermerken") or title.startswith("404"):
-        raise ValueError(brand + ' not found')
+        raise ValueError(brand + ' not found, or not on sale')
 
     image = root('div#verrander')("img").attr('data-src')
     if image is None:
         raise ValueError(brand + ' not found')
     image = host + image
 
+    on_sale = True
     cheapest_div = root('div#BekijkAlleWinkels')
     url_element = cheapest_div('a')
     shop_url = host + url_element.attr('href')
@@ -57,7 +59,12 @@ async def get(self, brand):
     shop_name = shop_url.split('--')[-1]
     shop_name = shop_name.replace('-', ' ').title()
     text = cheapest_div('p')
-    original_price = text('.van_prijs')[0].text
-    sale_price = text('.aanbiedingPrijsPPC')[0].text
-    return {'url': biernet_url, 'img': image, 'shop_name': shop_name, 'shop_url': shop_url, 'shop_img': shop_image,
-            'original_price': original_price, 'sale_price': sale_price}
+    try:
+        original_price = text('.van_prijs')[0].text
+        sale_price = text('.aanbiedingPrijsPPC')[0].text
+    except IndexError:
+        sale_price = re.search("€.*(?= per )", text.text()).group()
+        original_price = " "
+    return {'url': biernet_url, 'name': title.split("|")[0], 'img': image, 'is_on_sale': on_sale,
+            'shop_name': shop_name, 'shop_url': shop_url, 'shop_img': shop_image, 'original_price': original_price,
+            'sale_price': sale_price}

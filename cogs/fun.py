@@ -217,19 +217,25 @@ class Fun(commands.Cog):
         embed.set_image(url=meme)
         await ctx.send(embed=embed)
 
-    @commands.command(name="biernet")
-    async def biernet(self, ctx, args):
+    @commands.command(name="beer", aliases=['bier', 'biernet'])
+    async def biernet(self, ctx, *args):
+        text = ''.join(args[i] + ' ' for i in range(0, len(args)))
+        text = text.strip()
         async with ctx.channel.typing():
             try:
-                brand = await biernet.search(self, args)
+                brand = await biernet.search(self, text)
                 result = await biernet.get(self, brand)
-                embed: discord.Embed = discord.Embed(
-                    title='Cheapest seller of '+args,
-                    url=result['url'],
-                    description="Best deal: "+result['shop_name']+"\n" +
-                    "~~"+result['original_price']+"~~ **"+result['sale_price']+"**")
-
-                embed.set_author(name=result['shop_name'], url=result['shop_url'], icon_url=result['shop_img'])
+                if result['is_on_sale']:
+                    embed: discord.Embed = discord.Embed(
+                        title='Cheapest seller of '+result['name'], url=result['url'],
+                        colour=discord.colour.Colour.green(),
+                        description="~~"+result['original_price']+"~~ **"+result['sale_price']+"**")
+                    embed.set_author(name=result['shop_name'], url=result['shop_url'], icon_url=result['shop_img'])
+                else:
+                    embed: discord.Embed = discord.Embed(
+                        title='No offers found for ' + result['name'], url=result['url'],
+                        colour=discord.colour.Colour.red(),)
+                    embed.set_image(url='https://biernet.nl/site/images/general_site_specific/empty_logo.png')
                 embed.set_thumbnail(url=result['img'])
                 embed.set_footer(text='Source: biernet.nl')
                 await ctx.send(embed=embed)
@@ -237,7 +243,6 @@ class Fun(commands.Cog):
                 await ctx.send("Cannot connect, is biernet down?")
             except ValueError as e:
                 await ctx.send("Error: "+str(e))
-
 
 
 def setup(bot):
