@@ -3,6 +3,7 @@ import aiohttp
 import time
 from backend.spongemock import mock
 from num2words import num2words
+from backend import biernet
 
 import discord
 from discord.ext import commands
@@ -215,6 +216,27 @@ class Fun(commands.Cog):
         embed: discord.Embed = discord.Embed(msg=msg,colour=0x00ffff)
         embed.set_image(url=meme)
         await ctx.send(embed=embed)
+
+    @commands.command(name="biernet")
+    async def biernet(self, ctx, args):
+        async with ctx.channel.typing():
+            try:
+                result = await biernet.get(self, args)
+                embed: discord.Embed = discord.Embed(
+                    title='Cheapest seller of '+args,
+                    url=result[0],
+                    description="Best deal: "+result[2]+"\n" +
+                    "~~"+result[5]+"~~ **"+result[6]+"**")
+
+                embed.set_author(name=result[2], url=result[3], icon_url=result[4])
+                embed.set_thumbnail(url=result[1])
+                embed.set_footer(text='Source: biernet.nl')
+                await ctx.send(embed=embed)
+            except aiohttp.ClientConnectorError:
+                await ctx.send("Cannot connect, is biernet down?")
+            except ValueError as e:
+                await ctx.send("Error: "+str(e))
+
 
 
 def setup(bot):
