@@ -2,6 +2,19 @@ import aiohttp
 from pyquery import PyQuery
 
 
+async def search(self, search_term):
+    biernet_url = "https://www.biernet.nl/site/php/data/aanbiedingen.php"
+    args = {'zoeken': 'true', 'merk': search_term, 'kratten': 'krat-alle'}
+    try:
+        session = self.bot._session
+        async with session.post(biernet_url, data=args) as resp:
+            webpage = await resp.text()
+    except aiohttp.ClientConnectorError as e:
+        raise e
+    root = PyQuery(webpage)
+    return root('a.merkenUrl').attr('href').split("/")[-1]
+
+
 async def get(self, brand):
     host = "https://www.biernet.nl"
     biernet_url = host + "/bier/merken/" + brand + "/"

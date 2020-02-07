@@ -221,7 +221,8 @@ class Fun(commands.Cog):
     async def biernet(self, ctx, args):
         async with ctx.channel.typing():
             try:
-                result = await biernet.get(self, args)
+                brand = await biernet.search(self, args)
+                result = await biernet.get(self, brand)
                 embed: discord.Embed = discord.Embed(
                     title='Cheapest seller of '+args,
                     url=result[0],
