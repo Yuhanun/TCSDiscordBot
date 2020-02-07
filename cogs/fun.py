@@ -219,23 +219,24 @@ class Fun(commands.Cog):
 
     @commands.command(name="beer", aliases=['bier', 'biernet'])
     async def biernet(self, ctx, *args):
+        """
+        Find the best deal for a (crate of) beer on biernet.nl
+        """
         text = ''.join(args[i] + ' ' for i in range(0, len(args)))
         text = text.strip()
+
         async with ctx.channel.typing():
             try:
+                # Search biernet for the provided beer
                 brand = await biernet.search(self, text)
+                # Get the lowest offer
                 result = await biernet.get(self, brand)
-                if result['is_on_sale']:
-                    embed: discord.Embed = discord.Embed(
-                        title='Cheapest seller of '+result['name'], url=result['url'],
-                        colour=discord.colour.Colour.green(),
-                        description="~~"+result['original_price']+"~~ **"+result['sale_price']+"**")
-                    embed.set_author(name=result['shop_name'], url=result['shop_url'], icon_url=result['shop_img'])
-                else:
-                    embed: discord.Embed = discord.Embed(
-                        title='No offers found for ' + result['name'], url=result['url'],
-                        colour=discord.colour.Colour.red(),)
-                    embed.set_image(url='https://biernet.nl/site/images/general_site_specific/empty_logo.png')
+                # Create an embed with the results
+                embed: discord.Embed = discord.Embed(
+                    title='Cheapest seller of '+result['name'], url=result['url'],
+                    colour=discord.colour.Colour.green(),
+                    description="~~"+result['original_price']+"~~ **"+result['sale_price']+"**")
+                embed.set_author(name=result['shop_name'], url=result['shop_url'], icon_url=result['shop_img'])
                 embed.set_thumbnail(url=result['img'])
                 embed.set_footer(text='Source: biernet.nl')
                 await ctx.send(embed=embed)
