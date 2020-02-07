@@ -2,17 +2,32 @@ import aiohttp
 from pyquery import PyQuery
 
 
-async def search(self, search_term):
+async def get_search(self, args):
     biernet_url = "https://www.biernet.nl/site/php/data/aanbiedingen.php"
-    args = {'zoeken': 'true', 'merk': search_term, 'kratten': 'krat-alle'}
     try:
         session = self.bot._session
         async with session.post(biernet_url, data=args) as resp:
-            webpage = await resp.text()
+            return await resp.text()
     except aiohttp.ClientConnectorError as e:
         raise e
+
+
+async def search(self, search_term):
+    webpage = await get_search(self, {'zoeken': 'true', 'merk': search_term, 'kratten': 'krat-alle'})
     root = PyQuery(webpage)
-    return root('a.merkenUrl').attr('href').split("/")[-1]
+    url = root('a.merkenUrl').attr('href')
+    if url is None:
+        webpage = await get_search(self, {'zoeken': 'true', 'merk': search_term})
+        url = PyQuery(webpage)('a.merkenUrl').attr('href')
+        if url is None:
+            webpage = await get_search(self, {'zoeken': 'true', 'merk': search_term})
+            url = PyQuery(webpage)('a.merkenUrl').attr('href')
+            if url is None:
+                webpage = await get_search(self, {'zoeken': 'true', 'zoek': search_term})
+                url = PyQuery(webpage)('a.merkenUrl').attr('href')
+                if url is None:
+                    return search_term
+    return url.split("/")[-1]
 
 
 async def get(self, brand):
