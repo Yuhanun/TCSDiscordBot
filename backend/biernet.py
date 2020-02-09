@@ -17,23 +17,24 @@ async def get_search(self, args):
 
 
 async def search(self, search_term):
-    search_term = search_term.replace(" ", "-")
     # First try finding crates with the search term as brand name
-    webpage = await get_search(self, {'zoeken': 'true', 'merk': search_term, 'kratten': 'krat-alle',
+    webpage = await get_search(self, {'zoeken': 'true', 'merk': search_term.replace(" ", "-"), 'kratten': 'krat-alle',
                                       'sorteer': 'prijs-oplopend'})
     url = PyQuery(webpage)('a.merkenUrl').attr('href')
     if url is None:
         # Try finding crates with the search term as search term
-        webpage = await get_search(self, {'zoeken': 'true', 'zoek': search_term, 'kratten': 'krat-alle',
-                                          'sorteer': 'prijs-oplopend'})
+        webpage = await get_search(self, {'zoeken': 'true', 'zoek': search_term.replace(" ", "+"),
+                                          'kratten': 'krat-alle', 'sorteer': 'prijs-oplopend'})
         url = PyQuery(webpage)('a.merkenUrl').attr('href')
         if url is None:
             # Try finding other offers (not crates) with the search term as brand name
-            webpage = await get_search(self, {'zoeken': 'true', 'merk': search_term, 'sorteer': 'prijs-oplopend'})
+            webpage = await get_search(self, {'zoeken': 'true', 'merk': search_term.replace(" ", "-"),
+                                              'sorteer': 'prijs-oplopend'})
             url = PyQuery(webpage)('a.merkenUrl').attr('href')
             if url is None:
                 # Try finding other offers with the search term as search term
-                webpage = await get_search(self, {'zoeken': 'true', 'zoek': search_term, 'sorteer': 'prijs-oplopend'})
+                webpage = await get_search(self, {'zoeken': 'true', 'zoek': search_term.replace(" ", "+"),
+                                                  'sorteer': 'prijs-oplopend'})
                 url = PyQuery(webpage)('a.merkenUrl').attr('href')
                 if url is None:
                     # If nothing is found, we throw an exception
