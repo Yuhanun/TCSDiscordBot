@@ -3,6 +3,7 @@ import aiohttp
 import time
 from backend.spongemock import mock
 from num2words import num2words
+from backend import biernet
 
 import discord
 from discord.ext import commands
@@ -215,6 +216,41 @@ class Fun(commands.Cog):
         embed: discord.Embed = discord.Embed(msg=msg,colour=0x00ffff)
         embed.set_image(url=meme)
         await ctx.send(embed=embed)
+
+    @commands.command(name="beer", aliases=['bier', 'biernet'])
+    async def biernet(self, ctx, *args):
+        """
+        Find the best deal for a (crate of) beer on biernet.nl
+        """
+        text = ''.join(args[i] + ' ' for i in range(0, len(args)))
+        text = text.strip()
+
+        if text == "":
+            message = await ctx.send("Usage: .bier [beer brand]")
+            return
+
+        async with ctx.channel.typing():
+            try:
+                # Search biernet for the provided beer
+                result = await biernet.search(self, text)
+                # Create an embed with the results
+                embed: discord.Embed = discord.Embed(
+                    title='Cheapest seller of ' + result['brand'], url=result['url'],
+                    colour=discord.colour.Colour.green(),
+                    description=result['name'])
+                embed.add_field(name=result['product'],  inline=True,
+                                value="~~" + result['original_price'] + "~~ **" + result['sale_price'] + "**")
+                embed.add_field(name=result['PPL'], inline=True, value=result['sale'])
+                embed.set_author(name=result['shop_name'], url=result['biernet_shop_url'], icon_url=result['shop_img'])
+                embed.set_thumbnail(url=result['img'])
+                embed.set_footer(text="On sale until " + result['end_date'],
+                                 icon_url="https://biernet.nl/site/images/general_site_specific/logo-klein.png")
+                message = await ctx.send(embed=embed)
+                await message.add_reaction(emoji="\U0001F37B")
+            except aiohttp.ClientConnectorError:
+                await ctx.send("Cannot connect, is biernet down?")
+            except ValueError as e:
+                await ctx.send(str(e))
 
 
 def setup(bot):
