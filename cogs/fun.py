@@ -225,6 +225,10 @@ class Fun(commands.Cog):
         text = ''.join(args[i] + ' ' for i in range(0, len(args)))
         text = text.strip()
 
+        if text == "":
+            message = await ctx.send("Usage: .bier [beer brand]")
+            return
+
         async with ctx.channel.typing():
             try:
                 # Search biernet for the provided beer
@@ -241,7 +245,8 @@ class Fun(commands.Cog):
                 embed.set_thumbnail(url=result['img'])
                 embed.set_footer(text="On sale until " + result['end_date'],
                                  icon_url="https://biernet.nl/site/images/general_site_specific/logo-klein.png")
-                await ctx.send(embed=embed)
+                message = await ctx.send(embed=embed)
+                await message.add_reaction(emoji="\U0001F37B")
             except aiohttp.ClientConnectorError:
                 await ctx.send("Cannot connect, is biernet down?")
             except ValueError as e:
