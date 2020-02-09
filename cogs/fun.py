@@ -228,22 +228,24 @@ class Fun(commands.Cog):
         async with ctx.channel.typing():
             try:
                 # Search biernet for the provided beer
-                brand = await biernet.search(self, text)
-                # Get the lowest offer
-                result = await biernet.get(self, brand)
+                result = await biernet.search(self, text)
                 # Create an embed with the results
                 embed: discord.Embed = discord.Embed(
-                    title='Cheapest seller of '+result['name'], url=result['url'],
+                    title='Cheapest seller of ' + result['brand'], url=result['url'],
                     colour=discord.colour.Colour.green(),
-                    description="~~"+result['original_price']+"~~ **"+result['sale_price']+"**")
-                embed.set_author(name=result['shop_name'], url=result['shop_url'], icon_url=result['shop_img'])
+                    description=result['name'])
+                embed.add_field(name=result['product'],  inline=True,
+                                value="~~" + result['original_price'] + "~~ **" + result['sale_price'] + "**")
+                embed.add_field(name=result['PPL'], inline=True, value=result['sale'])
+                embed.set_author(name=result['shop_name'], url=result['biernet_shop_url'], icon_url=result['shop_img'])
                 embed.set_thumbnail(url=result['img'])
-                embed.set_footer(text='Source: biernet.nl')
+                embed.set_footer(text="On sale until " + result['end_date'],
+                                 icon_url="https://biernet.nl/site/images/general_site_specific/logo-klein.png")
                 await ctx.send(embed=embed)
             except aiohttp.ClientConnectorError:
                 await ctx.send("Cannot connect, is biernet down?")
             except ValueError as e:
-                await ctx.send("Error: "+str(e))
+                await ctx.send(str(e))
 
 
 def setup(bot):
