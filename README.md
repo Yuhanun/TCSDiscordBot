@@ -22,6 +22,22 @@ python main.py
 ```
 to stop working on the project, just type `deactivate` in your terminal of choice
 
+### Docker
+Because using the above virtualenv might still impose compatibility problems related to `sqlite`, there is also a Dockerfile provided that you can use.
+```sh
+# Clone the repository:
+git clone https://github.com/Yuhanun/TCSDiscordBot.git
+cd TCSDiscordBot
+
+# Create a token.txt file containing your bot token here
+
+# Build the Docker image
+docker build -t tcs-discord-bot .
+# Run the Docker image (or run it differently)
+docker run -it  --name tcs-discord-bot tcs-discord-bot:latest
+```
+To stop, press <kbd>Ctrl</kbd>+<kbd>P</kbd>, then <kbd>Ctrl</kbd>+<kbd>Q</kbd> and run `docker stop  tcs-discord-bot`
+
 ## Feel free to pull request any changes / improvements you make :) ##
 
 # License #
