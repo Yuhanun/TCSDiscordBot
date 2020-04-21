@@ -1,4 +1,10 @@
-FROM docker.io/library/python:3
+# Source it from the python dockerfile
+FROM python:3.8.2
+# Copy over the current directory structure, make sure token.txt exists!
 COPY . /TCSDiscordBot
+
+# Install the requirements
 RUN pip install -r /TCSDiscordBot/requirements.txt
-CMD cd /TCSDiscordBot && python main.py
+
+# Run the bot
+ENTRYPOINT [ "/TCSDiscordBot/run.sh" ]
