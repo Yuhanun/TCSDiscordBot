@@ -1,7 +1,8 @@
 import discord
 from discord.ext import commands
 
-import traceback
+from datetime import datetime
+import re
 
 from backend.role_helper import trigger_role, send_error, simple_embed
 
@@ -43,6 +44,80 @@ class RoleHelper(commands.Cog):
         """
         result = await trigger_role(ctx.author, "Masters", ctx.guild)
         await simple_embed(ctx, ("Removed " if not result else "Added ") + f"role `Masters`")
+
+    @commands.guild_only()
+    @commands.has_any_role("Administrator", "Moderator")
+    @commands.command(name="update_years")
+    async def update_years(self, ctx, *args) -> None:
+        """
+        Updates the year roles of everyone in the server (that joined before last August)
+        Optional arguments: "force" to also upgrade people that joined after last August, "downgrade" to downgrade
+        """
+        async with ctx.channel.typing():
+            largs = [s.lower() for s in args]
+            last_august = self._get_last_date(8, 1)
+            count = 0
+            guild = ctx.channel.guild
+            too_old = []
+
+            for member in guild.members:
+                if "force" not in largs:
+                    # If the member joined after last august
+                    if member.joined_at > last_august:
+                        continue
+
+                try:
+                    # Increase or decrease the roles
+                    if "downgrade" in largs:
+                        await self._change_year(member, -1)
+                    else:
+                        await self._change_year(member, 1)
+                except MemberIsTooOld:
+                    too_old.append(member.display_name)
+                    continue
+                except MemberHasNoYearRole:
+                    continue
+
+                count += 1
+
+        await ctx.send("Changed the ranks of "+str(count) +
+                       " members (this server has a total size of " + str(guild.member_count) + ")")
+        if len(too_old) > 0:
+            await ctx.send("Please manually change the roles of " + ", ".join(too_old))
+
+    @staticmethod
+    async def _change_year(member: discord.Member, amount: int = 1):
+        # Get the current year of the user
+        regex = re.compile("^Year [0-9]+$")
+        try:
+            current_role = [role for role in member.roles if regex.match(role.name)][0]
+        except IndexError:  # If index 0 is out of range; the member does not have a year role
+            raise MemberHasNoYearRole
+        current_year = int(re.findall("[0-9]+", current_role.name)[0])
+
+        # Get the new role of the user
+        new_name = "Year " + str(current_year + amount)
+        try:
+            new_role = [role for role in member.guild.roles if role.name == new_name][0]
+        except IndexError:  # If index 0 is out of range; a role with that year does not exist yet
+            raise MemberIsTooOld
+
+        # Remove old role and assign new role
+        await member.remove_roles(current_role)
+        await member.add_roles(new_role)
+
+
+    @staticmethod
+    def _get_last_date(month: int, day: int) -> datetime:
+        """
+        Gets the last occurrence of a date (month and date)
+        :return: a datetime object on the last occurrence of the provided date
+        """
+        today = datetime.now()
+        if today.month >= month and today.day >= day:
+            return datetime(today.year, month, day)
+        else:
+            return datetime(today.year - 1, month, day)
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
@@ -125,3 +200,11 @@ class RoleHelper(commands.Cog):
 
 def setup(bot):
     bot.add_cog(RoleHelper(bot))
+
+
+class MemberHasNoYearRole(Exception):
+    pass
+
+
+class MemberIsTooOld(Exception):
+    pass
