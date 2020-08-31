@@ -50,8 +50,8 @@ async def search(self, search_term):
 
     product = first_result('p.artikel')('a')[0].text
     product_name = first_result('div.item_image')('a')('img').attr('title')
-    original_price = first_result('p.prijs')('span.van_prijs')[0].text
-    sale_price = first_result('p.prijs')('span.voor_prijs')[0].text
+    original_price = first_result('p.prijss')('span.van_prijss').text()
+    sale_price = first_result('p.prijss')('span.voor_prijss').text()
     sale = PyQuery(first_result('div.informatie')('li.item')[0]).text()
     sale = sale.replace('korting', 'off')
     sale_price_liter = PyQuery(first_result('div.informatie')('li.item')[1]).text()
