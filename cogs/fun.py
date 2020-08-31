@@ -22,7 +22,7 @@ async def on_message_alexa(self, message: discord.Message):
 
 # Replies "WHO DID THIS" together with laughing crying emoji's to random messages that contain "lmao"
 async def on_message_lmao(self, message: discord.Message):
-    if "lmao" in message.content.lower() and not random.randint(0,10):
+    if "lmao" in message.content.lower():
         response = ("<:lol:646089960792916018>""<:lol:646089960792916018>""<:lol:646089960792916018>"
                 "WHO DID THIS"
                 "<:lol:646089960792916018>""<:lol:646089960792916018>""<:lol:646089960792916018>")
