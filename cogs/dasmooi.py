@@ -126,7 +126,7 @@ class DasMooi(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
-        emoji: discord.emoji.PartialEmoji = payload.emoji
+        emoji: discord.PartialEmoji = payload.emoji
         guild: discord.Guild = self.bot.get_guild(payload.guild_id)
         member: discord.Member = guild.get_member(payload.user_id)
         channel: discord.TextChannel = guild.get_channel(payload.channel_id)
@@ -137,7 +137,7 @@ class DasMooi(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
-        emoji: discord.emoji.PartialEmoji = payload.emoji
+        emoji: discord.PartialEmoji = payload.emoji
         guild: discord.Guild = self.bot.get_guild(payload.guild_id)
         member: discord.Member = guild.get_member(payload.user_id)
         channel: discord.TextChannel = guild.get_channel(payload.channel_id)
@@ -149,7 +149,7 @@ class DasMooi(commands.Cog):
         NEGATIVE = 'dasnietmooi'
 
     # Check if the karma count should be changed, if so, change it
-    async def change_karma_check(self, emoji: discord.emoji.PartialEmoji, member: discord.Member,
+    async def change_karma_check(self, emoji: discord.PartialEmoji, member: discord.Member,
                                  message: discord.Message, increment: bool):
         # Check if the user doesn't want to give karma to themselves.
         # It is also important that Tegel's opinion doesn't count.
@@ -165,7 +165,7 @@ class DasMooi(commands.Cog):
                                             (0, 1 if increment else -1))
 
     # Check if the message obtained enough karma to get forwarded to another channel
-    async def forward_message_check(self, emoji: discord.emoji.PartialEmoji,
+    async def forward_message_check(self, emoji: discord.PartialEmoji,
                                     message: discord.Message):
         emotes = [reaction.count for reaction in message.reactions
                   if type(reaction.emoji) == discord.emoji.Emoji

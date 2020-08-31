@@ -1,8 +1,11 @@
 import random
 import aiohttp
 import time
+import html
+from pyquery import PyQuery  
 from backend.spongemock import mock
 from num2words import num2words
+from backend import biernet
 
 import discord
 from discord.ext import commands
@@ -195,26 +198,97 @@ class Fun(commands.Cog):
                 res2 = res2+char+'\n'
         await ctx.send(res+res2)
 
-
     @commands.command(name="meme")
-    async def meme(self,ctx,args):
+    async def meme(self, ctx, args):
         """
         Send a random meme, might take some time for the server to start, takes an argument for the subreddit
         """
-        url = 'https://www.reddit.com/r/' + args + '.json?&limit=100'
-        try:
-            async with ctx.channel.typing():
-                session = self.bot._session
-                async with session.get(url,headers={'User-agent': 'oofyeet '}) as resp:
+        async with ctx.channel.typing():
+            session = self.bot._session
+            url = 'https://www.reddit.com/r/' + args + '.json?&limit=100'
+            try:
+                async with session.get(url, headers={'User-agent': 'oofyeet '}) as resp:
                     data = await resp.json()
-        except aiohttp.ClientConnectorError:
-            msg = "no memes for you"
-        msg = ""
-        memes = data['data']['children']
-        meme = memes[random.randint(0,99)]['data']['url']
-        embed: discord.Embed = discord.Embed(msg=msg,colour=0x00ffff)
-        embed.set_image(url=meme)
-        await ctx.send(embed=embed)
+            except aiohttp.ClientConnectorError as e:
+                await ctx.send("Error: "+str(e))
+                return
+            memes = data['data']['children']
+
+            if len(memes) == 0:
+                await ctx.send("/r/"+args+" does not exist")
+                return
+
+            meme = memes[random.randint(0, 99)]['data']
+            meme_title = meme['title']
+            meme_url = meme['url']
+            meme_reddit_url = 'https://reddit.com'+meme['permalink']
+            meme_author = meme['author']
+            meme_thumbnail = meme['thumbnail']
+
+            if 'post_hint' in meme:
+                meme_type = meme['post_hint']
+            else:
+                meme_type = 'text'
+
+            if meme_type == 'image':
+                embed: discord.Embed = discord.Embed(colour=0x00ffff, title=meme_title, url=meme_reddit_url)
+                embed.set_image(url=meme_url)
+            elif meme_type == 'text':
+                url = meme_reddit_url+'.json'
+                try:
+                    async with session.get(url, headers={'User-agent': 'oofyeet '}) as resp:
+                        data = await resp.json()
+                    meme_text_html = data[0]['data']['children'][0]['data']['selftext_html']
+                    meme_text_html = html.unescape(meme_text_html)
+                    html_root = PyQuery(meme_text_html)
+                    meme_text = html_root('div.md').html()
+                    meme_text = meme_text.replace("<p>", "").replace("</p>","\n")
+                    if len(meme_text) >= 1024:
+                        meme_text = meme_text[0:1020]+"..."
+                except aiohttp.ClientConnectorError:
+                    meme_text = ""
+                embed: discord.Embed = discord.Embed(description=meme_text, colour=0x00ffff,
+                                                     url=meme_reddit_url, title=meme_title)
+            else:
+                embed: discord.Embed = discord.Embed(colour=0x00ffff, url=meme_reddit_url, title=meme_title)
+                embed.set_thumbnail(url=meme_thumbnail)
+            embed.set_author(name="/u/"+meme_author, url='https://reddit.com/u/' + meme_author)
+            await ctx.send(embed=embed)
+
+    @commands.command(name="beer", aliases=['bier', 'biernet'])
+    async def biernet(self, ctx, *args):
+        """
+        Find the best deal for a (crate of) beer on biernet.nl
+        """
+        text = ''.join(args[i] + ' ' for i in range(0, len(args)))
+        text = text.strip()
+
+        if text == "":
+            message = await ctx.send("Usage: .bier [beer brand]")
+            return
+
+        async with ctx.channel.typing():
+            try:
+                # Search biernet for the provided beer
+                result = await biernet.search(self, text)
+                # Create an embed with the results
+                embed: discord.Embed = discord.Embed(
+                    title='Cheapest seller of ' + result['brand'], url=result['url'],
+                    colour=discord.colour.Colour.green(),
+                    description=result['name'])
+                embed.add_field(name=result['product'],  inline=True,
+                                value="~~" + result['original_price'] + "~~ **" + result['sale_price'] + "**")
+                embed.add_field(name=result['PPL'], inline=True, value=result['sale'])
+                embed.set_author(name=result['shop_name'], url=result['biernet_shop_url'], icon_url=result['shop_img'])
+                embed.set_thumbnail(url=result['img'])
+                embed.set_footer(text="On sale until " + result['end_date'],
+                                 icon_url="https://biernet.nl/site/images/general_site_specific/logo-klein.png")
+                message = await ctx.send(embed=embed)
+                await message.add_reaction(emoji="\U0001F37B")
+            except aiohttp.ClientConnectorError:
+                await ctx.send("Cannot connect, is biernet down?")
+            except ValueError as e:
+                await ctx.send(str(e))
 
 
 def setup(bot):
