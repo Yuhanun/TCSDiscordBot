@@ -9,6 +9,15 @@ from backend.role_helper import trigger_role, send_error, simple_embed
 class RoleHelper(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        
+    @commands.guild_only()
+    @commands.command(name="wan")
+    async def _set_wan(self, ctx) -> None:
+        """
+        Triggers wan role.
+        """
+        result = await trigger_role(ctx.author, "wan", ctx.guild)
+        await simple_embed(ctx, ("Removed " if not result else "Added ") + f"role `wan`") 
 
     @commands.guild_only()
     @commands.command(name="year")
